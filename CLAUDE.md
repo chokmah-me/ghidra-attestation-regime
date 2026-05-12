@@ -35,22 +35,26 @@ This instantiates the Computability Filter (Bilar 2026) as a practical triage to
 
 ## Prerequisites
 
-- **Ghidra 11.x** installed
-- **JDK 17+** (check with `java -version`)
+- **Ghidra 12.x** (tested with 12.0.4)
+- **JDK 21+** (tested with jdk-21.0.11)
 - **Gradle 8+** (check with `gradle -v`)
-- **GHIDRA_INSTALL_DIR** environment variable set to your Ghidra installation path
-  - Example: `$env:GHIDRA_INSTALL_DIR = "C:\ghidra_11.0_PUBLIC"`
+- **Windows 11** with PowerShell 7+
+- **GHIDRA_INSTALL_DIR** and **JAVA_HOME** environment variables (set per-session in PowerShell)
 
-## Build & Package
+## Build & Test
 
 ```powershell
-# Set Ghidra path (one-time setup)
-$env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC\"
+# Set environment variables (per-session)
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21.0.11"
+$env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
+
+# Run tests (66 tests, no Ghidra runtime required)
+gradle test
 
 # Build the plugin extension
 gradle buildExtension
 
-# Output is in dist/AttestationRegimeClassifier-0.1.0.zip
+# Output: dist/AttestationRegimeClassifier-0.1.0.zip
 ```
 
 ## Install
@@ -74,13 +78,19 @@ Then restart Ghidra.
 
 The plugin runs a **5-step classification pipeline** on every function:
 
-1. **InputSourceTagger** — Traces data inputs to their ultimate source (MMIO, sensor, constant, etc.)
-2. **ControlFlowAnalyzer** — Detects loop bounds, recursion, indirect branches
-3. **ComplexityAnalyzer** — Computes cyclomatic complexity, table sizes, pcode operation counts
-4. **RegimeAssigner** — Decision tree assigns Regime 1/2/3a/Provenance/Unclassified
-5. **WeightedRegimePropagator** — Propagates regimes through the call graph
+1. **InputSourceTagger** — Traces data inputs to their ultimate source (MMIO, sensor, constant, etc.) — **SCAFFOLDED**
+2. **ControlFlowAnalyzer** — Detects loop bounds, recursion, indirect branches — **SCAFFOLDED**
+3. **ComplexityAnalyzer** — Computes cyclomatic complexity, table sizes, pcode operation counts — ✅ Working
+4. **RegimeAssigner** — Decision tree assigns Regime 1/2/3a/Provenance/Unclassified — ✅ Production-grade, fully tested
+5. **WeightedRegimePropagator** — Propagates regimes through the call graph — **SCAFFOLDED**
 
 Results are color-coded in the Listing view (green = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
+
+**Current Build Status:**
+- ✅ Pure-Java model & decision tree: 66 tests passing
+- ✅ JSON memory map parser: reads STM32F407 fixture
+- ⚠️ Analysis classes (steps 1, 2, 5): excluded from build, require Ghidra runtime
+- ⚠️ Visualization & reporting: scaffolded
 
 ## Code Structure
 
@@ -153,20 +163,28 @@ Example: `data/stm32f407_memory_map.json` (STM32F407VG OpenPLC target)
 ## Testing
 
 ```powershell
-# Run all unit tests
+# Run all 66 tests (pure Java, no Ghidra runtime required)
 gradle test
 
-# Run a specific test class
+# Run specific test classes
 gradle test --tests chokmah.plugin.attestation.model.AttestationRegimeTest
 gradle test --tests chokmah.plugin.attestation.model.KnownConstantTablesTest
 gradle test --tests chokmah.plugin.attestation.model.InputSourceTest
 gradle test --tests chokmah.plugin.attestation.analysis.RegimeAssignerTest
+gradle test --tests chokmah.plugin.attestation.IntegrationE2eTest
 
-# Test report
+# View HTML test report
 start build/reports/tests/test/index.html
 ```
 
-Tests use JUnit 5 (Jupiter). The 4 existing test classes cover pure-Java model and decision-tree logic — no Ghidra runtime required. Analysis classes (InputSourceTagger, ControlFlowAnalyzer, ComplexityAnalyzer, WeightedRegimePropagator) require Ghidra's AbstractGhidraHeadlessIntegrationTest infrastructure and are not yet tested.
+**Test Coverage (5 classes, 66 tests):**
+- AttestationRegimeTest (13) — regime enum properties, color coding, dominance
+- InputSourceTest (13) — source type mapping, regime inheritance
+- KnownConstantTablesTest (17) — CRC/AES/SHA fingerprinting
+- RegimeAssignerTest (16) — decision tree logic, priority rules
+- IntegrationE2eTest (7) — end-to-end pipeline with realistic STM32F407 data
+
+**What's tested:** Pure-Java model, parser, decision tree. **What's not:** The analysis classes (InputSourceTagger, ControlFlowAnalyzer, WeightedRegimePropagator) require live Ghidra runtime and are scaffolded.
 
 ## Three Regimes (Quick Reference)
 
@@ -186,6 +204,7 @@ Tests use JUnit 5 (Jupiter). The 4 existing test classes cover pure-Java model a
 2. **Requires memory map** for meaningful results. Monolithic firmware classifies as mostly Regime 3 (correct: it's unauditable without partitioning).
 3. **Alias analysis** on stripped firmware is imprecise (over-approximation is safe for security).
 4. **No person-hour estimates** — complexity does not reliably predict verification effort.
+5. **Analysis classes are scaffolded** — InputSourceTagger and ControlFlowAnalyzer need completion to produce real results in Ghidra UI. See TESTING_ROADMAP.md for next steps.
 
 ## Gradle Notes
 
