@@ -153,14 +153,20 @@ Example: `data/stm32f407_memory_map.json` (STM32F407VG OpenPLC target)
 ## Testing
 
 ```powershell
-# Run unit tests
+# Run all unit tests
 gradle test
 
-# Run a specific test
-gradle test --tests chokmah.plugin.attestation.analysis.ComplexityAnalyzerTest
+# Run a specific test class
+gradle test --tests chokmah.plugin.attestation.model.AttestationRegimeTest
+gradle test --tests chokmah.plugin.attestation.model.KnownConstantTablesTest
+gradle test --tests chokmah.plugin.attestation.model.InputSourceTest
+gradle test --tests chokmah.plugin.attestation.analysis.RegimeAssignerTest
+
+# Test report
+start build/reports/tests/test/index.html
 ```
 
-Tests use JUnit 5 (Jupiter).
+Tests use JUnit 5 (Jupiter). The 4 existing test classes cover pure-Java model and decision-tree logic — no Ghidra runtime required. Analysis classes (InputSourceTagger, ControlFlowAnalyzer, ComplexityAnalyzer, WeightedRegimePropagator) require Ghidra's AbstractGhidraHeadlessIntegrationTest infrastructure and are not yet tested.
 
 ## Three Regimes (Quick Reference)
 
