@@ -42,18 +42,18 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.3.0.zip`
+Output: `dist/AttestationRegimeClassifier-0.4.0.zip`
 
 ### Install
 
 **Via Ghidra UI:**
 1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.3.0.zip`
+2. Select `dist/AttestationRegimeClassifier-0.4.0.zip`
 3. Restart Ghidra
 
 **Manual (PowerShell):**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.3.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.0.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -77,7 +77,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.3.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.0.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless

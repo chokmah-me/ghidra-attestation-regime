@@ -1,5 +1,59 @@
 # Release Notes
 
+## v0.4.0 — 2026-05-12
+
+**Status: Stable** — Inter-procedural taint propagation and computed address range analysis.
+
+### What's New
+
+- **Call-chain taint propagation** — InputSourceTagger now traces CALL opcodes to previously analyzed callees. If a callee reads MMIO or external sources, those sources are propagated to the caller. Enables inter-procedural regime escalation within a single analysis pass.
+- **Computed address range analysis** — classifyComputedAccess() no longer conservatively returns Regime 3a for all computed LOADs. New resolveConstantAddress() helper walks Varnode def-use chains (INT_ADD, PTRADD, PTRSUB) up to depth 4 to resolve constant-folded addresses into known memory regions.
+- **Incremental taint context** — FunctionRegimeAnalyzer passes the growing priorInputSources map to the tagger as each function is analyzed.
+
+### What's Deferred (v0.5.0 candidates)
+
+- PropertyMapManager persistence — requires Ghidra Saveable API research
+- FunctionGraph vertex coloring — requires FunctionGraphService API confirmation
+
+### Tests
+
+79 pure-Java tests passing.
+
+---
+
+## v0.3.0 — 2026-05-12
+
+**Status: Stable** — Full P-code analysis, MarkerService integration, CBRANCH predicate tracing.
+
+### What's New (since v0.2.0)
+
+- **CBRANCH predicate tracing** — ControlFlowAnalyzer now walks SSA for loop predicates and condition checks
+- **MarkerService integration** — Colored margin markers in Listing view (green/yellow/red/orange/gray) per regime
+- **Complete visualization layer** — RegimeListingColorizer and RegimeTableColumnProvider fully wired
+
+### Tests
+
+79 pure-Java tests passing (added WeightedRegimePropagatorTest coverage).
+
+---
+
+## v0.2.0 — 2026-05-12
+
+**Status: Stable** — Call-graph propagation, visualization layer, report generation.
+
+### What's New (since v0.1.0)
+
+- **WeightedRegimePropagator** — Call-graph propagation with regime-based edge weighting (MAIN_EXECUTION vs CALLBACK_PTR)
+- **Visualization layer** — RegimeListingColorizer (MarkerService) and RegimeTableColumnProvider
+- **Report generation** — RegimeReportGenerator outputs markdown regime summaries
+- **Improved complexity analysis** — Table scanning, pcode operation counting
+
+### Tests
+
+79 pure-Java tests passing.
+
+---
+
 ## v0.1.0 — 2026-05-12
 
 **Status: Stable** — 4-step classification pipeline complete. Plugin compiles, installs, and classifies real firmware.
