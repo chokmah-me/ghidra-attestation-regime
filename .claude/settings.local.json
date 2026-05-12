@@ -5,7 +5,9 @@
       "Bash(git commit -m ' *)",
       "PowerShell(gradle test *)",
       "PowerShell(gradle clean *)",
-      "PowerShell(Remove-Item *)"
+      "PowerShell(Remove-Item *)",
+      "PowerShell(gradle compileJava *)",
+      "PowerShell(gradle buildExtension *)"
     ]
   }
 }

@@ -1,22 +1,16 @@
 // RegimeClassification.java
-// Ghidra Saveable for persisting regime classification per function
-// Stored via Ghidra's property manager as function-level metadata
+// Regime classification attached to a function.
+// Can be persisted via Ghidra's property manager or exported to JSON reports.
 
 package chokmah.plugin.attestation.model;
 
-import ghidra.program.model.address.Address;
-import ghidra.program.model.data.Saveable;
-import ghidra.util.exception.CancelledException;
-import ghidra.util.task.TaskMonitor;
-
-import java.io.IOException;
 import java.util.*;
 
 /**
- * Persistent regime classification attached to a function.
- * Stored via PropertyMapManager using custom Saveable serialization.
+ * Regime classification attached to a function.
+ * Contains analysis results and provenance data per Section 4.
  *
- * Data model per Section 4:
+ * Data model:
  * {
  *   regime: 1 | 2 | 3a | "provenance_check",
  *   confidence: HIGH | MEDIUM | LOW,
@@ -25,7 +19,7 @@ import java.util.*;
  *   provenance_check_score: float  // only for flagged functions
  * }
  */
-public class RegimeClassification implements Saveable {
+public class RegimeClassification {
 
     public static final String PROPERTY_NAME = "AttestationRegime";
 
@@ -37,9 +31,6 @@ public class RegimeClassification implements Saveable {
     private double propagationWeight;
     private String classificationRationale;
     private long classificationTimestamp;
-
-    // Ghidra Saveable protocol version
-    private static final int SAVEABLE_VERSION = 1;
 
     public RegimeClassification() {
         this.regime = AttestationRegime.UNCLASSIFIED;
@@ -131,87 +122,4 @@ public class RegimeClassification implements Saveable {
         return !propagationPath.isEmpty();
     }
 
-    // ---- Saveable implementation for Ghidra persistence ----
-
-    @Override
-    public Class<?>[] getObjectStorageFields() {
-        return new Class<?>[] {
-            String.class,      // regime label
-            String.class,      // confidence label
-            String.class,      // JSON-serialized input sources
-            String.class,      // JSON-serialized propagation path
-            Double.class,      // provenance check score
-            Double.class,      // propagation weight
-            String.class,      // rationale
-            Long.class         // timestamp
-        };
-    }
-
-    @Override
-    public void save(ObjectStorage objStorage) {
-        objStorage.putString(regime != null ? regime.name() : AttestationRegime.UNCLASSIFIED.name());
-        objStorage.putString(confidence != null ? confidence.name() : Confidence.LOW.name());
-        objStorage.putString(serializeInputSources());
-        objStorage.putString(serializePropagationPath());
-        objStorage.putDouble(provenanceCheckScore);
-        objStorage.putDouble(propagationWeight);
-        objStorage.putString(classificationRationale);
-        objStorage.putLong(classificationTimestamp);
-    }
-
-    @Override
-    public void restore(ObjectStorage objStorage) {
-        String regimeName = objStorage.getString();
-        String confidenceName = objStorage.getString();
-        String sourcesJson = objStorage.getString();
-        String pathJson = objStorage.getString();
-        this.provenanceCheckScore = objStorage.getDouble();
-        this.propagationWeight = objStorage.getDouble();
-        this.classificationRationale = objStorage.getString();
-        this.classificationTimestamp = objStorage.getLong();
-
-        try {
-            this.regime = AttestationRegime.valueOf(regimeName);
-        } catch (IllegalArgumentException e) {
-            this.regime = AttestationRegime.UNCLASSIFIED;
-        }
-
-        try {
-            this.confidence = Confidence.valueOf(confidenceName);
-        } catch (IllegalArgumentException e) {
-            this.confidence = Confidence.LOW;
-        }
-
-        this.inputSources.clear();
-        this.propagationPath.clear();
-        // TODO: deserialize sourcesJson and pathJson on restore
-    }
-
-    @Override
-    public int getSchemaVersion() {
-        return SAVEABLE_VERSION;
-    }
-
-    @Override
-    public boolean isUpgradeable(int oldSchemaVersion) {
-        return oldSchemaVersion < SAVEABLE_VERSION;
-    }
-
-    @Override
-    public boolean upgrade(ObjectStorage oldObjStorage, int oldSchemaVersion,
-                           ObjectStorage newObjStorage) throws IOException, CancelledException {
-        return false;  // no upgrades defined yet
-    }
-
-    // ---- Serialization helpers (placeholder for JSON impl) ----
-
-    private String serializeInputSources() {
-        // TODO: JSON serialize inputSources list
-        return "";
-    }
-
-    private String serializePropagationPath() {
-        // TODO: JSON serialize propagationPath list
-        return "";
-    }
 }
