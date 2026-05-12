@@ -20,7 +20,6 @@ sourceSets {
             exclude 'chokmah/plugin/attestation/RegimeAnalysisTask.java'
             exclude 'chokmah/plugin/attestation/visualization/**'
             exclude 'chokmah/plugin/attestation/report/**'
-            exclude 'chokmah/plugin/attestation/parser/**'
             exclude 'chokmah/plugin/attestation/analysis/ControlFlowAnalyzer.java'
             exclude 'chokmah/plugin/attestation/analysis/ComplexityAnalyzer.java'
             exclude 'chokmah/plugin/attestation/analysis/InputSourceTagger.java'
@@ -38,6 +37,7 @@ sourceSets {
             exclude 'chokmah/plugin/attestation/analysis/ComplexityAnalyzerTest.java'
             exclude 'chokmah/plugin/attestation/analysis/WeightedRegimePropagatorTest.java'
             exclude 'chokmah/plugin/attestation/analysis/InputSourceTaggerTest.java'
+            exclude 'chokmah/plugin/attestation/parser/**'
         }
     }
 }

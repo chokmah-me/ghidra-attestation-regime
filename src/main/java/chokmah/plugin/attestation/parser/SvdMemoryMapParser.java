@@ -13,6 +13,8 @@
 package chokmah.plugin.attestation.parser;
 
 import chokmah.plugin.attestation.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ghidra.program.model.address.*;
 import ghidra.program.model.listing.Program;
 import org.w3c.dom.*;
@@ -27,10 +29,14 @@ import java.util.*;
  */
 public class SvdMemoryMapParser {
 
-    private final Program program;
+    private final AddressFactory addressFactory;
 
     public SvdMemoryMapParser(Program program) {
-        this.program = program;
+        this.addressFactory = program.getAddressFactory();
+    }
+
+    public SvdMemoryMapParser(AddressFactory addressFactory) {
+        this.addressFactory = addressFactory;
     }
 
     /**
@@ -63,10 +69,8 @@ public class SvdMemoryMapParser {
                 size = computePeripheralSize(peripheral, baseAddr);
             }
 
-            Address startAddr = program.getAddressFactory()
-                    .getDefaultAddressSpace().getAddress(baseAddr);
-            Address endAddr = program.getAddressFactory()
-                    .getDefaultAddressSpace().getAddress(baseAddr + size - 1);
+            Address startAddr = addressFactory.getDefaultAddressSpace().getAddress(baseAddr);
+            Address endAddr = addressFactory.getDefaultAddressSpace().getAddress(baseAddr + size - 1);
 
             MemoryRegion.PeripheralClass pClass = classifyPeripheral(name, peripheral);
             boolean isVolatile = true;  // all MMIO is volatile
@@ -98,9 +102,82 @@ public class SvdMemoryMapParser {
      * }
      */
     public List<MemoryRegion> parseJson(File jsonFile) throws Exception {
-        // TODO: implement JSON parsing using Jackson or javax.json
-        // For now: return empty list to trigger heuristic fallback
-        return Collections.emptyList();
+        List<MemoryRegion> regions = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(jsonFile);
+        JsonNode regionsNode = root.get("regions");
+
+        if (regionsNode == null || !regionsNode.isArray()) {
+            return regions;
+        }
+
+        for (JsonNode regionNode : regionsNode) {
+            String name = getJsonString(regionNode, "name", "UNKNOWN");
+            String startStr = getJsonString(regionNode, "start", "0x0");
+            String endStr = getJsonString(regionNode, "end", "0x0");
+            String typeStr = getJsonString(regionNode, "type", "UNKNOWN");
+            String classStr = getJsonString(regionNode, "peripheral_class", "NONE");
+            boolean isVolatile = getJsonBoolean(regionNode, "volatile", true);
+
+            long startAddr = parseHex(startStr);
+            long endAddr = parseHex(endStr);
+
+            Address start = addressFactory.getDefaultAddressSpace().getAddress(startAddr);
+            Address end = addressFactory.getDefaultAddressSpace().getAddress(endAddr);
+
+            MemoryRegion.RegionType regionType = parseRegionType(typeStr);
+            MemoryRegion.PeripheralClass peripheralClass = parsePeripheralClass(classStr);
+
+            regions.add(new MemoryRegion(name, start, end, regionType, peripheralClass, isVolatile));
+        }
+
+        return regions;
+    }
+
+    private long parseHex(String hexStr) {
+        if (hexStr.startsWith("0x") || hexStr.startsWith("0X")) {
+            return Long.parseLong(hexStr.substring(2), 16);
+        }
+        return Long.parseLong(hexStr, 16);
+    }
+
+    private String getJsonString(JsonNode node, String field, String defaultValue) {
+        JsonNode fieldNode = node.get(field);
+        return fieldNode != null && fieldNode.isTextual() ? fieldNode.asText() : defaultValue;
+    }
+
+    private boolean getJsonBoolean(JsonNode node, String field, boolean defaultValue) {
+        JsonNode fieldNode = node.get(field);
+        return fieldNode != null && fieldNode.isBoolean() ? fieldNode.asBoolean() : defaultValue;
+    }
+
+    private MemoryRegion.RegionType parseRegionType(String typeStr) {
+        return switch (typeStr.toUpperCase()) {
+            case "FLASH_ROM" -> MemoryRegion.RegionType.FLASH_ROM;
+            case "INTERNAL_SRAM" -> MemoryRegion.RegionType.INTERNAL_SRAM;
+            case "MMIO_PERIPHERAL" -> MemoryRegion.RegionType.MMIO_PERIPHERAL;
+            case "EXTERNAL_RAM" -> MemoryRegion.RegionType.EXTERNAL_RAM;
+            default -> MemoryRegion.RegionType.UNKNOWN;
+        };
+    }
+
+    private MemoryRegion.PeripheralClass parsePeripheralClass(String classStr) {
+        return switch (classStr.toUpperCase()) {
+            case "ADC" -> MemoryRegion.PeripheralClass.ADC;
+            case "SPI" -> MemoryRegion.PeripheralClass.SPI;
+            case "I2C" -> MemoryRegion.PeripheralClass.I2C;
+            case "UART" -> MemoryRegion.PeripheralClass.UART;
+            case "ETHERNET_MAC" -> MemoryRegion.PeripheralClass.ETHERNET_MAC;
+            case "USB" -> MemoryRegion.PeripheralClass.USB;
+            case "CAN" -> MemoryRegion.PeripheralClass.CAN;
+            case "TIMERS_PWM" -> MemoryRegion.PeripheralClass.TIMERS_PWM;
+            case "GPIO" -> MemoryRegion.PeripheralClass.GPIO;
+            case "DMA" -> MemoryRegion.PeripheralClass.DMA;
+            case "WATCHDOG" -> MemoryRegion.PeripheralClass.WATCHDOG;
+            case "CRYPTO_ACCEL" -> MemoryRegion.PeripheralClass.CRYPTO_ACCEL;
+            case "NONE" -> MemoryRegion.PeripheralClass.NONE;
+            default -> MemoryRegion.PeripheralClass.UNKNOWN_PERIPHERAL;
+        };
     }
 
     /**
