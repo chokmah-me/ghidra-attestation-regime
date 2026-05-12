@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RegimeAssignerTest {
 
-    private static final ControlFlowAnalyzer.ControlFlowProperties BOUNDED_CLEAN_CF =
-            new ControlFlowAnalyzer.ControlFlowProperties(
+    private static final ControlFlowProperties BOUNDED_CLEAN_CF =
+            new ControlFlowProperties(
                     true, // allLoopsBounded
                     false, // hasIndirectControlFlow
                     false, // hasFloatingPoint
@@ -20,8 +20,8 @@ class RegimeAssignerTest {
                     Collections.emptyList()
             );
 
-    private static final ControlFlowAnalyzer.ControlFlowProperties UNBOUNDED_CF =
-            new ControlFlowAnalyzer.ControlFlowProperties(
+    private static final ControlFlowProperties UNBOUNDED_CF =
+            new ControlFlowProperties(
                     false, // allLoopsBounded
                     false, // hasIndirectControlFlow
                     false, // hasFloatingPoint
@@ -31,8 +31,8 @@ class RegimeAssignerTest {
                     Collections.emptyList()
             );
 
-    private static final ComplexityAnalyzer.ComplexityMetrics NORMAL_COMPLEXITY =
-            new ComplexityAnalyzer.ComplexityMetrics(
+    private static final ComplexityMetrics NORMAL_COMPLEXITY =
+            new ComplexityMetrics(
                     5, // cyclomaticComplexity
                     0, // lookupTableEntries
                     100, // pcodeOpCount
@@ -41,8 +41,8 @@ class RegimeAssignerTest {
                     Collections.emptyList()
             );
 
-    private static final ComplexityAnalyzer.ComplexityMetrics PROVENANCE_CANDIDATE =
-            new ComplexityAnalyzer.ComplexityMetrics(
+    private static final ComplexityMetrics PROVENANCE_CANDIDATE =
+            new ComplexityMetrics(
                     10, // cyclomaticComplexity
                     512, // lookupTableEntries (suspicious)
                     500, // pcodeOpCount
@@ -201,8 +201,8 @@ class RegimeAssignerTest {
                 new InputSource(InputSource.SourceType.CONSTANT, null, "ROM")
         );
 
-        ControlFlowAnalyzer.ControlFlowProperties cfWithFp =
-                new ControlFlowAnalyzer.ControlFlowProperties(
+        ControlFlowProperties cfWithFp =
+                new ControlFlowProperties(
                         true, false, true, false, 1,
                         Collections.emptyList(),
                         Collections.emptyList()
@@ -219,8 +219,8 @@ class RegimeAssignerTest {
                 new InputSource(InputSource.SourceType.CONSTANT, null, "ROM")
         );
 
-        ControlFlowAnalyzer.ControlFlowProperties cfWithIndirect =
-                new ControlFlowAnalyzer.ControlFlowProperties(
+        ControlFlowProperties cfWithIndirect =
+                new ControlFlowProperties(
                         true, true, false, false, 1,
                         Collections.emptyList(),
                         List.of("function pointer call")
@@ -237,8 +237,8 @@ class RegimeAssignerTest {
                 new InputSource(InputSource.SourceType.CONSTANT, null, "ROM")
         );
 
-        ControlFlowAnalyzer.ControlFlowProperties cfUnbounded =
-                new ControlFlowAnalyzer.ControlFlowProperties(
+        ControlFlowProperties cfUnbounded =
+                new ControlFlowProperties(
                         false, false, false, false, 1,
                         List.of("while(1)"),
                         Collections.emptyList()
@@ -255,8 +255,8 @@ class RegimeAssignerTest {
                 new InputSource(InputSource.SourceType.CONSTANT, null, "ROM")
         );
 
-        ComplexityAnalyzer.ComplexityMetrics lowScoreProvenance =
-                new ComplexityAnalyzer.ComplexityMetrics(
+        ComplexityMetrics lowScoreProvenance =
+                new ComplexityMetrics(
                         5, 256, 100,
                         true, // isProvenanceCheckCandidate
                         3.5, // provenanceCheckScore (low)

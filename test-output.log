@@ -1,0 +1,130 @@
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+
+> Task :test
+
+RegimeAssignerTest > testProvenanceCheckWithLowScore() PASSED
+
+RegimeAssignerTest > testRegime1UnboundedLoopsDoNotTriggerRegime1() PASSED
+
+RegimeAssignerTest > testRegime1EmptySourcesList() PASSED
+
+RegimeAssignerTest > testProvenanceCheckFlaggedFirst() PASSED
+
+RegimeAssignerTest > testRegime1ConstantInputsBoundedLoops() PASSED
+
+RegimeAssignerTest > testRegime3aStrictMode() PASSED
+
+RegimeAssignerTest > testRegime1AllInternalState() PASSED
+
+RegimeAssignerTest > testRegime1IndirectCFDoesNotTriggerRegime1() PASSED
+
+RegimeAssignerTest > testRegime3aNetworkInput() PASSED
+
+RegimeAssignerTest > testRegime1EmptySourcesWithUnboundedLoops() PASSED
+
+RegimeAssignerTest > testRegime2SensorInput() PASSED
+
+RegimeAssignerTest > testUnclassifiedNonStrictMode() PASSED
+
+RegimeAssignerTest > testRegime3aMmioUnknownInput() PASSED
+
+RegimeAssignerTest > testRegime3aUnclassifiedExtInput() PASSED
+
+RegimeAssignerTest > testRegime3aDominatesRegime2() PASSED
+
+RegimeAssignerTest > testRegime1FloatingPointDoesNotTriggerRegime1() PASSED
+
+AttestationRegimeTest > testIsAdversarialRegime1False() PASSED
+
+AttestationRegimeTest > testIsAdversarialRegime2False() PASSED
+
+AttestationRegimeTest > testDominateWithNull() PASSED
+
+AttestationRegimeTest > testGetLabel() PASSED
+
+AttestationRegimeTest > testGetColorArgb() PASSED
+
+AttestationRegimeTest > testIsAdversarialRegime3A() PASSED
+
+AttestationRegimeTest > testIsAdversarialProvenance() PASSED
+
+AttestationRegimeTest > testDominateUnclassifiedBeatsNothing() PASSED
+
+AttestationRegimeTest > testDominateSameRegime() PASSED
+
+AttestationRegimeTest > testIsAdversarialUnclassifiedFalse() PASSED
+
+AttestationRegimeTest > testDominateRegime2BeatsRegime1() PASSED
+
+AttestationRegimeTest > testDominateProvenanceBeatsRegime2and1() PASSED
+
+AttestationRegimeTest > testDominateRegime3ABeatsAll() PASSED
+
+InputSourceTest > testDefaultRegimeConstant() PASSED
+
+InputSourceTest > testDefaultRegimeInternalStateWithoutInherited() PASSED
+
+InputSourceTest > testDefaultRegimeNetworkComms() PASSED
+
+InputSourceTest > testDefaultRegimeMmioUnknown() PASSED
+
+InputSourceTest > testDefaultRegimeInternalStateWithInheritedRegime1() PASSED
+
+InputSourceTest > testDefaultRegimeInternalStateWithInheritedRegime2() PASSED
+
+InputSourceTest > testGetSourceType() PASSED
+
+InputSourceTest > testGetDescription() PASSED
+
+InputSourceTest > testDefaultRegimeSensorAdc() PASSED
+
+InputSourceTest > testGetAccessAddress() PASSED
+
+InputSourceTest > testGetInheritedRegime() PASSED
+
+InputSourceTest > testDefaultRegimeInternalStateWithInheritedRegime3A() PASSED
+
+InputSourceTest > testDefaultRegimeUnclassifiedExt() PASSED
+
+KnownConstantTablesTest > testIsTableSizeSuspiciousZeroEntrySize() PASSED
+
+KnownConstantTablesTest > testIdentifyTableCrc32Ieee() PASSED
+
+KnownConstantTablesTest > testGetAllKnownTablesUnmodifiable() PASSED
+
+KnownConstantTablesTest > testIsTableSizeSuspicious1024Bytes4ByteEntries() PASSED
+
+KnownConstantTablesTest > testIsTableSizeSuspiciousNegativeEntrySize() PASSED
+
+KnownConstantTablesTest > testIdentifyTableAesSbox() PASSED
+
+KnownConstantTablesTest > testIsTableSizeSuspicious256Bytes1ByteEntries() PASSED
+
+KnownConstantTablesTest > testIdentifyTableNull() PASSED
+
+KnownConstantTablesTest > testIsTableSizeSuspiciousSmallTable() PASSED
+
+KnownConstantTablesTest > testIdentifyTableAesSboxWrongPrefix() PASSED
+
+KnownConstantTablesTest > testIdentifyTableNoMatchingSize() PASSED
+
+KnownConstantTablesTest > testGetAllKnownTables() PASSED
+
+KnownConstantTablesTest > testIdentifyTableCrc16Modbus() PASSED
+
+KnownConstantTablesTest > testIsTableSizeSuspicious255Bytes1ByteEntries() PASSED
+
+KnownConstantTablesTest > testIdentifyTableTooShort() PASSED
+
+KnownConstantTablesTest > testIsTableSizeSuspiciousLargeTable() PASSED
+
+KnownConstantTablesTest > testIdentifyTableSha256H0() PASSED
+
+BUILD SUCCESSFUL in 6s
+4 actionable tasks: 4 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.0/userguide/configuration_cache_enabling.html

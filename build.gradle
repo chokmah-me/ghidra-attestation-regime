@@ -22,7 +22,11 @@ sourceSets {
             exclude 'chokmah/plugin/attestation/visualization/**'
             exclude 'chokmah/plugin/attestation/report/**'
             exclude 'chokmah/plugin/attestation/parser/**'
-            exclude 'chokmah/plugin/attestation/analysis/**'
+            exclude 'chokmah/plugin/attestation/analysis/ControlFlowAnalyzer.java'
+            exclude 'chokmah/plugin/attestation/analysis/ComplexityAnalyzer.java'
+            exclude 'chokmah/plugin/attestation/analysis/InputSourceTagger.java'
+            exclude 'chokmah/plugin/attestation/analysis/WeightedRegimePropagator.java'
+            exclude 'chokmah/plugin/attestation/analysis/FunctionRegimeAnalyzer.java'
         }
         resources {
             srcDirs = ['src/main/resources']
@@ -31,7 +35,10 @@ sourceSets {
     test {
         java {
             srcDirs = ['src/test/java']
-            exclude 'chokmah/plugin/attestation/analysis/**'
+            exclude 'chokmah/plugin/attestation/analysis/ControlFlowAnalyzerTest.java'
+            exclude 'chokmah/plugin/attestation/analysis/ComplexityAnalyzerTest.java'
+            exclude 'chokmah/plugin/attestation/analysis/WeightedRegimePropagatorTest.java'
+            exclude 'chokmah/plugin/attestation/analysis/InputSourceTaggerTest.java'
         }
     }
 }

@@ -26,7 +26,7 @@ package chokmah.plugin.attestation.analysis;
 
 import chokmah.plugin.attestation.model.*;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * Decision tree for assigning attestation regime based on prior analysis
@@ -55,8 +55,8 @@ public class RegimeAssigner {
      */
     public RegimeAssignment assignRegime(
             List<InputSource> sources,
-            ControlFlowAnalyzer.ControlFlowProperties cfProps,
-            ComplexityAnalyzer.ComplexityMetrics complexity) {
+            ControlFlowProperties cfProps,
+            ComplexityMetrics complexity) {
 
         StringBuilder rationale = new StringBuilder();
 
@@ -65,9 +65,15 @@ public class RegimeAssigner {
         boolean hasRegime3Input = sources.stream()
                 .anyMatch(s -> {
                     InputSource.SourceType t = s.getSourceType();
-                    return t == InputSource.SourceType.NETWORK_COMMS ||
+                    if (t == InputSource.SourceType.NETWORK_COMMS ||
                             t == InputSource.SourceType.UNCLASSIFIED_EXT ||
-                            t == InputSource.SourceType.MMIO_UNKNOWN;
+                            t == InputSource.SourceType.MMIO_UNKNOWN) {
+                        return true;
+                    }
+                    if (t == InputSource.SourceType.INTERNAL_STATE) {
+                        return s.getInheritedRegime() == AttestationRegime.REGIME_3A;
+                    }
+                    return false;
                 });
 
         if (hasRegime3Input) {
@@ -109,12 +115,18 @@ public class RegimeAssigner {
         }
 
         // Check 3: Regime 1 determinism?
-        // All inputs constant/internal, all loops bounded, no indirect CF
+        // All inputs constant or internal with Regime 1 provenance, all loops bounded, no indirect CF
         boolean allInputsDeterministic = sources.stream()
                 .allMatch(s -> {
                     InputSource.SourceType t = s.getSourceType();
-                    return t == InputSource.SourceType.CONSTANT ||
-                            t == InputSource.SourceType.INTERNAL_STATE;
+                    if (t == InputSource.SourceType.CONSTANT) {
+                        return true;
+                    }
+                    if (t == InputSource.SourceType.INTERNAL_STATE) {
+                        // Only deterministic if inherited regime is REGIME_1
+                        return s.getInheritedRegime() == AttestationRegime.REGIME_1;
+                    }
+                    return false;
                 });
 
         boolean isRegime1 = allInputsDeterministic
@@ -123,19 +135,30 @@ public class RegimeAssigner {
                 && !cfProps.hasFloatingPoint();
 
         if (isRegime1) {
-            rationale.append("Regime 1: all inputs are constant/internal state. ");
+            rationale.append("Regime 1: all inputs are constant/internal with Regime 1 provenance. ");
             rationale.append("All loops bounded (").append(cfProps.loopCount()).append("). ");
             rationale.append("No indirect control flow. ");
             rationale.append("Formally verifiable at bounded cost.");
 
+            // Lower confidence if we inferred this from absence of data (empty sources)
+            Confidence conf = sources.isEmpty() ? Confidence.MEDIUM : Confidence.HIGH;
             return new RegimeAssignment(AttestationRegime.REGIME_1,
-                    Confidence.HIGH, rationale.toString());
+                    conf, rationale.toString());
         }
 
         // Check 4: Regime 2 stochastic input?
-        // Sensor/ADC reads present, no adversarial input (already checked)
+        // Sensor/ADC reads present, or INTERNAL_STATE with Regime 2 inherited, no adversarial input (already checked)
         boolean hasRegime2Input = sources.stream()
-                .anyMatch(s -> s.getSourceType() == InputSource.SourceType.SENSOR_ADC);
+                .anyMatch(s -> {
+                    InputSource.SourceType t = s.getSourceType();
+                    if (t == InputSource.SourceType.SENSOR_ADC) {
+                        return true;
+                    }
+                    if (t == InputSource.SourceType.INTERNAL_STATE) {
+                        return s.getInheritedRegime() == AttestationRegime.REGIME_2;
+                    }
+                    return false;
+                });
 
         if (hasRegime2Input) {
             rationale.append("Regime 2: function reads from sensor/ADC inputs. ");

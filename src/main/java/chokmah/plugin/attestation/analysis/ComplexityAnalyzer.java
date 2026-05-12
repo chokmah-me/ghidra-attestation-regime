@@ -16,6 +16,8 @@
 package chokmah.plugin.attestation.analysis;
 
 import chokmah.plugin.attestation.model.*;
+import chokmah.plugin.attestation.model.ComplexityMetrics;
+import chokmah.plugin.attestation.model.TableCandidate;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.*;
 import ghidra.program.model.listing.*;
@@ -37,31 +39,6 @@ public class ComplexityAnalyzer {
     private final Program program;
     private final TaskMonitor monitor;
 
-    /**
-     * Complexity metrics and provenance check assessment.
-     */
-    public record ComplexityMetrics(
-            int cyclomaticComplexity,
-            int lookupTableEntries,
-            int pcodeOpCount,
-            boolean isProvenanceCheckCandidate,
-            double provenanceCheckScore,
-            List<TableCandidate> tableCandidates
-    ) {
-    }
-
-    /**
-     * A discovered constant table reference with provenance status.
-     */
-    public record TableCandidate(
-            Address tableAddress,
-            int totalBytes,
-            int entrySize,
-            int entryCount,
-            KnownConstantTables.TableMatch knownMatch,
-            boolean isUnexplained  // true if no known match -> provenance flag
-    ) {
-    }
 
     public ComplexityAnalyzer(Program program, TaskMonitor monitor) {
         this.program = program;
@@ -229,7 +206,7 @@ public class ComplexityAnalyzer {
         KnownConstantTables.TableMatch match = KnownConstantTables.identifyTable(tableData, elementSize);
         boolean unexplained = (match == null && KnownConstantTables.isTableSizeSuspicious(totalBytes, elementSize));
 
-        return new TableCandidate(addr, totalBytes, elementSize, entries, match, unexplained);
+        return new TableCandidate(addr.getOffset(), totalBytes, elementSize, entries, match, unexplained);
     }
 
     /**

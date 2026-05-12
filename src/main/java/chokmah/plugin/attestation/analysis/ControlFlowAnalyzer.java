@@ -14,6 +14,7 @@
 
 package chokmah.plugin.attestation.analysis;
 
+import chokmah.plugin.attestation.model.ControlFlowProperties;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.block.*;
 import ghidra.program.model.listing.*;
@@ -37,19 +38,6 @@ public class ControlFlowAnalyzer {
         this.monitor = monitor;
     }
 
-    /**
-     * ControlFlowProperties captures the three binary signatures from Step 2.
-     */
-    public record ControlFlowProperties(
-            boolean allLoopsBounded,
-            boolean hasIndirectControlFlow,
-            boolean hasFloatingPoint,
-            boolean hasVolatileAccesses,
-            int loopCount,
-            List<String> unboundedLoopDescriptions,
-            List<String> indirectFlowDescriptions
-    ) {
-    }
 
     /**
      * Analyze control flow of a function for regime-determining properties.
