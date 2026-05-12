@@ -1,0 +1,63 @@
+// Attestation Regime Classifier for Ghidra
+// Cross-Pollination H: Capability Attestation <-> Computability Filter <-> Shibboleth Lattice
+// Daniyel Yaacov Bilar, Chokmah LLC
+
+plugins {
+    id 'java'
+}
+
+version = '0.1.0'
+
+def ghidraInstallDir = System.getenv('GHIDRA_INSTALL_DIR') ?: '/opt/ghidra'
+
+defaultTasks 'buildExtension'
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+}
+
+repositories {
+    flatDir {
+        dirs "${ghidraInstallDir}/Ghidra/Processors/ARM/lib",
+             "${ghidraInstallDir}/Ghidra/Processors/x86/lib"
+    }
+}
+
+dependencies {
+    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Framework", include: '**/*.jar')
+    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Features", include: '**/*.jar')
+    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Processors', include: '**/*.jar')
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+}
+
+task buildExtension(type: Zip) {
+    archiveFileName = "AttestationRegimeClassifier-${version}.zip"
+    destinationDirectory = file('dist')
+
+    into('AttestationRegimeClassifier') {
+        from('src/main/resources') {
+            include '**/*'
+        }
+        from('data') {
+            include '**/*'
+        }
+        from('ghidra_scripts') {
+            include '**/*'
+        }
+        from('build/libs') {
+            include '*.jar'
+        }
+    }
+}
+
+buildExtension.dependsOn jar
+build.dependsOn buildExtension

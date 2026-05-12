@@ -1,0 +1,348 @@
+{
+  "device": "STM32F407VG",
+  "description": "Example memory map for STM32F407VG Discovery board. OpenPLC runtime target. Regime classifications: USART/Ethernet -> Regime 3a, ADC -> Regime 2, internal -> Regime 1.",
+  "regions": [
+    {
+      "name": "Flash",
+      "start": "0x08000000",
+      "end": "0x080FFFFF",
+      "type": "FLASH_ROM",
+      "peripheral_class": "NONE",
+      "volatile": false,
+      "note": "Code and read-only data"
+    },
+    {
+      "name": "SRAM1",
+      "start": "0x20000000",
+      "end": "0x2001FFFF",
+      "type": "INTERNAL_SRAM",
+      "peripheral_class": "NONE",
+      "volatile": false,
+      "note": "Main internal SRAM"
+    },
+    {
+      "name": "SRAM2",
+      "start": "0x2001C000",
+      "end": "0x2001FFFF",
+      "type": "INTERNAL_SRAM",
+      "peripheral_class": "NONE",
+      "volatile": false,
+      "note": "Additional 16KB SRAM"
+    },
+    {
+      "name": "CCM RAM",
+      "start": "0x10000000",
+      "end": "0x1000FFFF",
+      "type": "INTERNAL_SRAM",
+      "peripheral_class": "NONE",
+      "volatile": false,
+      "note": "Core-coupled memory (fast access)"
+    },
+    {
+      "name": "RCC",
+      "start": "0x40023800",
+      "end": "0x40023BFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "TIMERS_PWM",
+      "volatile": true,
+      "note": "Reset and Clock Control"
+    },
+    {
+      "name": "GPIOA",
+      "start": "0x40020000",
+      "end": "0x400203FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "GPIO",
+      "volatile": true,
+      "note": "GPIO port A"
+    },
+    {
+      "name": "GPIOB",
+      "start": "0x40020400",
+      "end": "0x400207FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "GPIO",
+      "volatile": true,
+      "note": "GPIO port B"
+    },
+    {
+      "name": "GPIOC",
+      "start": "0x40020800",
+      "end": "0x40020BFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "GPIO",
+      "volatile": true,
+      "note": "GPIO port C"
+    },
+    {
+      "name": "GPIOD",
+      "start": "0x40020C00",
+      "end": "0x40020FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "GPIO",
+      "volatile": true,
+      "note": "GPIO port D"
+    },
+    {
+      "name": "ADC1",
+      "start": "0x40012000",
+      "end": "0x400123FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "ADC",
+      "volatile": true,
+      "note": "Analog-to-digital converter 1 -> Regime 2 input"
+    },
+    {
+      "name": "ADC2",
+      "start": "0x40012100",
+      "end": "0x400124FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "ADC",
+      "volatile": true,
+      "note": "Analog-to-digital converter 2 -> Regime 2 input"
+    },
+    {
+      "name": "ADC3",
+      "start": "0x40012200",
+      "end": "0x400125FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "ADC",
+      "volatile": true,
+      "note": "Analog-to-digital converter 3 -> Regime 2 input"
+    },
+    {
+      "name": "USART1",
+      "start": "0x40011000",
+      "end": "0x400113FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "UART",
+      "volatile": true,
+      "note": "USART1 -> Regime 3a (Modbus RTU, engineering workstation comms)"
+    },
+    {
+      "name": "USART2",
+      "start": "0x40004400",
+      "end": "0x400047FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "UART",
+      "volatile": true,
+      "note": "USART2 -> Regime 3a"
+    },
+    {
+      "name": "USART3",
+      "start": "0x40004800",
+      "end": "0x40004BFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "UART",
+      "volatile": true,
+      "note": "USART3 -> Regime 3a"
+    },
+    {
+      "name": "UART4",
+      "start": "0x40004C00",
+      "end": "0x40004FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "UART",
+      "volatile": true,
+      "note": "UART4 -> Regime 3a"
+    },
+    {
+      "name": "UART5",
+      "start": "0x40005000",
+      "end": "0x400053FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "UART",
+      "volatile": true,
+      "note": "UART5 -> Regime 3a"
+    },
+    {
+      "name": "USART6",
+      "start": "0x40011400",
+      "end": "0x400117FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "UART",
+      "volatile": true,
+      "note": "USART6 -> Regime 3a"
+    },
+    {
+      "name": "ETH_MAC",
+      "start": "0x40028000",
+      "end": "0x40029FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "ETHERNET_MAC",
+      "volatile": true,
+      "note": "Ethernet MAC -> Regime 3a (Modbus TCP, EtherNet/IP)"
+    },
+    {
+      "name": "USB_OTG_FS",
+      "start": "0x50000000",
+      "end": "0x5003FFFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "USB",
+      "volatile": true,
+      "note": "USB OTG Full Speed -> Regime 3a (firmware updates, config)"
+    },
+    {
+      "name": "USB_OTG_HS",
+      "start": "0x40040000",
+      "end": "0x4007FFFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "USB",
+      "volatile": true,
+      "note": "USB OTG High Speed -> Regime 3a"
+    },
+    {
+      "name": "SPI1",
+      "start": "0x40013000",
+      "end": "0x400133FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "SPI",
+      "volatile": true,
+      "note": "SPI1 -> Regime 2 (sensor peripheral, if connected to sensor)"
+    },
+    {
+      "name": "SPI2",
+      "start": "0x40003800",
+      "end": "0x40003BFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "SPI",
+      "volatile": true,
+      "note": "SPI2 -> Regime 2 (sensor) or 3a (network bridge)"
+    },
+    {
+      "name": "SPI3",
+      "start": "0x40003C00",
+      "end": "0x40003FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "SPI",
+      "volatile": true,
+      "note": "SPI3 -> Regime 2 or 3a"
+    },
+    {
+      "name": "I2C1",
+      "start": "0x40005400",
+      "end": "0x400057FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "I2C",
+      "volatile": true,
+      "note": "I2C1 -> Regime 2 (temperature sensor, EEPROM) or 3a"
+    },
+    {
+      "name": "I2C2",
+      "start": "0x40005800",
+      "end": "0x40005BFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "I2C",
+      "volatile": true,
+      "note": "I2C2 -> Regime 2 or 3a"
+    },
+    {
+      "name": "I2C3",
+      "start": "0x40005C00",
+      "end": "0x40005FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "I2C",
+      "volatile": true,
+      "note": "I2C3 -> Regime 2 or 3a"
+    },
+    {
+      "name": "TIM1",
+      "start": "0x40010000",
+      "end": "0x400103FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "TIMERS_PWM",
+      "volatile": true,
+      "note": "Advanced timer -> Regime 1"
+    },
+    {
+      "name": "TIM2",
+      "start": "0x40000000",
+      "end": "0x400003FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "TIMERS_PWM",
+      "volatile": true,
+      "note": "General purpose timer -> Regime 1"
+    },
+    {
+      "name": "TIM3",
+      "start": "0x40000400",
+      "end": "0x400007FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "TIMERS_PWM",
+      "volatile": true,
+      "note": "General purpose timer -> Regime 1"
+    },
+    {
+      "name": "TIM4",
+      "start": "0x40000800",
+      "end": "0x40000BFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "TIMERS_PWM",
+      "volatile": true,
+      "note": "General purpose timer -> Regime 1"
+    },
+    {
+      "name": "CAN1",
+      "start": "0x40006400",
+      "end": "0x400067FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "CAN",
+      "volatile": true,
+      "note": "CAN1 -> Regime 3a (industrial fieldbus)"
+    },
+    {
+      "name": "CAN2",
+      "start": "0x40006800",
+      "end": "0x40006BFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "CAN",
+      "volatile": true,
+      "note": "CAN2 -> Regime 3a"
+    },
+    {
+      "name": "CRC",
+      "start": "0x40023000",
+      "end": "0x400233FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "CRYPTO_ACCEL",
+      "volatile": true,
+      "note": "CRC accelerator -> Regime 1"
+    },
+    {
+      "name": "DMA1",
+      "start": "0x40026000",
+      "end": "0x400263FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "DMA",
+      "volatile": true,
+      "note": "DMA1 -> internal data movement"
+    },
+    {
+      "name": "DMA2",
+      "start": "0x40026400",
+      "end": "0x400267FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "DMA",
+      "volatile": true,
+      "note": "DMA2 -> internal data movement"
+    },
+    {
+      "name": "IWDG",
+      "start": "0x40003000",
+      "end": "0x400033FF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "WATCHDOG",
+      "volatile": true,
+      "note": "Independent watchdog -> Regime 1 (safety-critical internal)"
+    },
+    {
+      "name": "WWDG",
+      "start": "0x40002C00",
+      "end": "0x40002FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "WATCHDOG",
+      "volatile": true,
+      "note": "Window watchdog -> Regime 1"
+    }
+  ]
+}

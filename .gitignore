@@ -1,0 +1,12 @@
+.gradle/
+build/
+dist/
+*.class
+*.jar
+*.zip
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+.DS_Store
