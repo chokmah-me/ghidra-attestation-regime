@@ -45,18 +45,18 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.4.0.zip`
+Output: `dist/AttestationRegimeClassifier-0.4.1.zip`
 
 ### Install
 
 **Via Ghidra UI:**
 1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.4.0.zip`
+2. Select `dist/AttestationRegimeClassifier-0.4.1.zip`
 3. Restart Ghidra
 
 **Manual (PowerShell):**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.4.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.1.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -80,7 +80,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.4.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.1.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless
@@ -97,7 +97,7 @@ Output: regime distribution table (Regime 1/2/3a counts, confidence, rationale p
 
 ```powershell
 gradle test
-# 79 tests pass, no Ghidra runtime required
+# 78 tests pass, no Ghidra runtime required
 ```
 
 **Test classes:**
@@ -106,11 +106,11 @@ gradle test
 - `KnownConstantTablesTest` (17 tests) — CRC/AES/SHA table fingerprinting
 - `RegimeAssignerTest` (16 tests) — decision tree logic and priority rules
 - `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
-- `WeightedRegimePropagatorTest` (13 tests) — call-graph propagation heuristics, weight thresholds
+- `WeightedRegimePropagatorTest` (12 tests) — call-graph propagation heuristics, weight thresholds
 
-## Current Status (v0.4.0 + Firmware Test Infrastructure)
+## Current Status (v0.4.1)
 
-**Fully implemented and tested (79 tests):**
+**Fully implemented and tested (78 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
 - ✅ Input source categorization (13 tests)
 - ✅ Known constant table identification — CRC32, AES, SHA (17 tests)
@@ -119,7 +119,7 @@ gradle test
 - ✅ ControlFlowAnalyzer — CBRANCH predicate tracing (isExternallyDerived SSA walk), hasFunctionPointerUsage detection, loop bounds, indirect control flow, volatile accesses
 - ✅ ComplexityAnalyzer — cyclomatic complexity, table scanning, P-code op count
 - ✅ FunctionRegimeAnalyzer — 4-step pipeline orchestrator, all functions, progress tracking
-- ✅ WeightedRegimePropagator — call-graph propagation with improved regime-based classification (13 tests)
+- ✅ WeightedRegimePropagator — call-graph propagation with improved regime-based classification (12 tests)
 - ✅ RegimeAnalyzerPlugin — Ghidra UI menu integration, MarkerService wiring
 - ✅ RegimeAnalysisTask — background task launcher
 - ✅ RegimeListingColorizer — MarkerService integration; colored margin markers per regime in Listing view
@@ -209,7 +209,7 @@ To cite the AttestationRegimeClassifier plugin:
   title   = {AttestationRegimeClassifier -- Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification},
   author  = {Bilar, Daniyel Yaacov},
   year    = {2026},
-  version = {0.4.0},
+  version = {0.4.1},
   url     = {https://github.com/chokmah/ghidra-attestation-regime}
 }
 ```

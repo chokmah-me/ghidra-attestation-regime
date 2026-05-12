@@ -15,7 +15,7 @@
 
 ### Testing
 
-79 unit tests still passing. New regression capability: batch-classify real firmware and compare regime distributions across versions.
+78 unit tests passing. New regression capability: batch-classify real firmware and compare regime distributions across versions.
 
 ### What's Deferred (v0.5.0 candidates)
 

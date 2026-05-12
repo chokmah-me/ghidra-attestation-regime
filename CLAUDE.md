@@ -48,13 +48,13 @@ This instantiates the Computability Filter (Bilar 2026) as a practical triage to
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-21.0.11"
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
-# Run tests (79 tests, no Ghidra runtime required)
+# Run tests (78 tests, no Ghidra runtime required)
 gradle test
 
 # Build the plugin extension
 gradle buildExtension
 
-# Output: dist/AttestationRegimeClassifier-0.4.0.zip
+# Output: dist/AttestationRegimeClassifier-0.4.1.zip
 ```
 
 ## Install
@@ -64,11 +64,11 @@ Two methods:
 **Via Ghidra UI:**
 1. Open Ghidra
 2. File > Install Extensions > Add
-3. Select `dist/AttestationRegimeClassifier-0.4.0.zip`
+3. Select `dist/AttestationRegimeClassifier-0.4.1.zip`
 
 **Manual:**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.4.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.1.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -86,8 +86,8 @@ The plugin runs a **5-step classification pipeline** on every function:
 
 Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.4.0):**
-- ✅ Pure-Java model & decision tree: 79 tests passing
+**Current Build Status (v0.4.1):**
+- ✅ Pure-Java model & decision tree: 78 tests passing
 - ✅ JSON memory map parser: reads STM32F407 fixture
 - ✅ Call-graph propagation with improved regime-based classification
 - ✅ ControlFlowAnalyzer: CBRANCH predicate tracing, hasFunctionPointerUsage detection
@@ -180,7 +180,7 @@ Example: `data/stm32f407_memory_map.json` (STM32F407VG OpenPLC target) — uses 
 ## Testing
 
 ```powershell
-# Run all 79 tests (pure Java, no Ghidra runtime required)
+# Run all 78 tests (pure Java, no Ghidra runtime required)
 gradle test
 
 # Run specific test classes
@@ -195,12 +195,12 @@ gradle test --tests chokmah.plugin.attestation.IntegrationE2eTest
 start build/reports/tests/test/index.html
 ```
 
-**Test Coverage (6 classes, 79 tests):**
+**Test Coverage (6 classes, 78 tests):**
 - AttestationRegimeTest (13) — regime enum properties, color coding, dominance
 - InputSourceTest (13) — source type mapping, regime inheritance
 - KnownConstantTablesTest (17) — CRC/AES/SHA fingerprinting
 - RegimeAssignerTest (16) — decision tree logic, priority rules
-- WeightedRegimePropagatorTest (13) — call-graph propagation weight formulas, thresholds, heuristics
+- WeightedRegimePropagatorTest (12) — call-graph propagation weight formulas, thresholds, heuristics
 - IntegrationE2eTest (7) — end-to-end pipeline with realistic STM32F407 data
 
 **What's tested:** Pure-Java model, parser, decision tree, propagator heuristics. **What's not tested:** The Ghidra-dependent analyzer classes (InputSourceTagger, ControlFlowAnalyzer, ComplexityAnalyzer) require live Ghidra runtime; full test coverage deferred.
