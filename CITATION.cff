@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+title: "AttestationRegimeClassifier — Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification"
+message: "If you use this software, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: Bilar
+    given-names: Daniyel Yaacov
+    affiliation: "Chokmah LLC"
+    email: chokmah-dyb@pm.me
+version: "0.4.0"
+date-released: "2026-05-12"
+license: MIT
+repository-code: "https://github.com/chokmah/ghidra-attestation-regime"
+abstract: >
+  A Ghidra plugin that classifies embedded firmware functions into three
+  attestation regimes (formally provable / statistically testable / adversarial
+  input exposure) based on the Computability Filter framework (Bilar 2026).
+  Supports ICS/embedded firmware triage with P-code analysis, call-graph
+  propagation, and memory map integration.
+keywords:
+  - ghidra
+  - embedded firmware
+  - ICS security
+  - attestation
+  - static analysis
+  - ARM Cortex-M
+references:
+  - type: article
+    title: "Three Regimes of Capability Attestation for Autonomous Agents"
+    authors:
+      - family-names: Bilar
+        given-names: Daniyel Yaacov
+    year: 2026
+    doi: "10.5281/zenodo.20114610"
+  - type: article
+    title: "The Computability Filter"
+    authors:
+      - family-names: Bilar
+        given-names: Daniyel Yaacov
+    year: 2026
+    doi: "10.5281/zenodo.19818321"
+  - type: article
+    title: "Shibboleth Lattice Simulation"
+    authors:
+      - family-names: Bilar
+        given-names: Daniyel Yaacov
+    year: 2026
+    doi: "10.5281/zenodo.20090834"
