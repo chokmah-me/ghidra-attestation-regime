@@ -16,15 +16,12 @@ sourceSets {
     main {
         java {
             srcDirs = ['src/main/java']
+            exclude 'ghidra_scripts/**'
             exclude 'chokmah/plugin/attestation/RegimeAnalyzerPlugin.java'
             exclude 'chokmah/plugin/attestation/RegimeAnalysisTask.java'
             exclude 'chokmah/plugin/attestation/visualization/**'
             exclude 'chokmah/plugin/attestation/report/**'
-            exclude 'chokmah/plugin/attestation/analysis/ControlFlowAnalyzer.java'
-            exclude 'chokmah/plugin/attestation/analysis/ComplexityAnalyzer.java'
-            exclude 'chokmah/plugin/attestation/analysis/InputSourceTagger.java'
             exclude 'chokmah/plugin/attestation/analysis/WeightedRegimePropagator.java'
-            exclude 'chokmah/plugin/attestation/analysis/FunctionRegimeAnalyzer.java'
         }
         resources {
             srcDirs = ['src/main/resources']

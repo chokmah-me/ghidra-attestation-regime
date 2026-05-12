@@ -19,10 +19,12 @@ import chokmah.plugin.attestation.model.*;
 import chokmah.plugin.attestation.model.ComplexityMetrics;
 import chokmah.plugin.attestation.model.TableCandidate;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.block.*;
 import ghidra.program.model.data.*;
 import ghidra.program.model.listing.*;
 import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryAccessException;
+import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.pcode.*;
 import ghidra.program.model.scalar.Scalar;
 import ghidra.program.model.symbol.Reference;
@@ -62,11 +64,11 @@ public class ComplexityAnalyzer {
 
         // Flag: tables >= 256 entries + data-dependent branching on table output
         for (TableCandidate tc : tables) {
-            if (tc.isUnexplained() && tc.entryCount >= 256) {
+            if (tc.isUnexplained() && tc.entryCount() >= 256) {
                 // TODO: verify data-dependent branching on this table's output
                 // requires cross-referencing with ControlFlowAnalyzer branch predicates
                 isProvCandidate = true;
-                provScore += tc.entryCount / 256.0;  // scoring heuristic
+                provScore += tc.entryCount() / 256.0;  // scoring heuristic
             }
         }
 
@@ -108,9 +110,15 @@ public class ComplexityAnalyzer {
             }
         }
 
-        // Use decompiled CFG
-        // TODO: iterate HighFunction basic blocks and count edges/nodes
-        return 1; // placeholder
+        // Use decompiled CFG: count conditional branches + 1
+        int cbranches = 0;
+        Iterator<PcodeOpAST> it = highFunction.getPcodeOps();
+        while (it.hasNext()) {
+            if (it.next().getOpcode() == PcodeOp.CBRANCH) {
+                cbranches++;
+            }
+        }
+        return cbranches + 1;
     }
 
     /**
@@ -178,7 +186,7 @@ public class ComplexityAnalyzer {
 
         // Try to determine array bounds from data type at this address
         Data data = program.getListing().getDataContaining(addr);
-        if (data == null || !data.getDataType().isEquivalent(new ArrayDataType())) {
+        if (data == null || !(data.getDataType() instanceof ArrayDataType)) {
             // No typed array; use heuristic byte scan
             return heuristicTableScan(addr, block);
         }
@@ -211,15 +219,43 @@ public class ComplexityAnalyzer {
 
     /**
      * Heuristic scan for untyped constant tables in read-only memory.
-     * Looks for contiguous non-zero data of significant size.
+     * Looks for contiguous non-zero data of significant size (>= 16 bytes).
      */
     private TableCandidate heuristicTableScan(Address addr, MemoryBlock block) {
-        // TODO: implement heuristic table detection
-        // Scan forward from addr looking for:
-        // 1. Contiguous non-zero bytes
-        // 2. Pattern repetition suggesting table structure
-        // 3. Size threshold (>= 256 bytes for heuristic)
-        return null;
+        Memory memory = program.getMemory();
+        long maxLen = block.getEnd().getOffset() - addr.getOffset();
+        int scanLen = (int) Math.min(maxLen, 4096);
+
+        if (scanLen < 16) return null;
+
+        byte[] data = new byte[scanLen];
+        try {
+            memory.getBytes(addr, data);
+        } catch (MemoryAccessException e) {
+            return null;
+        }
+
+        // Count non-zero bytes to estimate table size
+        int nonZero = 0;
+        for (byte b : data) {
+            if (b != 0) nonZero++;
+        }
+
+        // If >70% of bytes are non-zero, likely a data table
+        if (nonZero < scanLen * 0.7) {
+            return null;
+        }
+
+        // Estimate entries assuming 4-byte (word) elements
+        int elementSize = 4;
+        int entries = scanLen / elementSize;
+
+        if (entries < 4) return null;
+
+        KnownConstantTables.TableMatch match = KnownConstantTables.identifyTable(data, elementSize);
+        boolean unexplained = (match == null && KnownConstantTables.isTableSizeSuspicious(scanLen, elementSize));
+
+        return new TableCandidate(addr.getOffset(), scanLen, elementSize, entries, match, unexplained);
     }
 
     private int countPcodeOperations(HighFunction highFunction) {

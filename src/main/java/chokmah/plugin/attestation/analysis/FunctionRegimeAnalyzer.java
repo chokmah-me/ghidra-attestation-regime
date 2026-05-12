@@ -49,7 +49,7 @@ public class FunctionRegimeAnalyzer {
         this.strictMode = strictMode;
 
         this.tagger = new InputSourceTagger(program, this.memoryMap, monitor);
-        this.cfAnalyzer = new ControlFlowAnalyzer(program, monitor);
+        this.cfAnalyzer = new ControlFlowAnalyzer(program, this.memoryMap, monitor);
         this.complexityAnalyzer = new ComplexityAnalyzer(program, monitor);
         this.regimeAssigner = new RegimeAssigner(strictMode);
     }
@@ -74,11 +74,11 @@ public class FunctionRegimeAnalyzer {
         List<InputSource> sources = tagger.tagFunctionInputs(function, highFunction);
 
         // Step 2: Control flow analysis
-        ControlFlowAnalyzer.ControlFlowProperties cfProps =
+        ControlFlowProperties cfProps =
                 cfAnalyzer.analyze(function, highFunction);
 
         // Step 3: Complexity assessment
-        ComplexityAnalyzer.ComplexityMetrics complexity =
+        ComplexityMetrics complexity =
                 complexityAnalyzer.analyze(function, highFunction);
 
         // Step 4: Regime assignment
@@ -147,7 +147,7 @@ public class FunctionRegimeAnalyzer {
 
     /**
      * Store classification in Ghidra's property manager for persistence
-     * across sessions.
+     * across sessions. (TODO: wire PropertyMapManager when core type is available)
      */
     private void storeClassification(Function function, ClassificationResult result) {
         try {
@@ -161,8 +161,14 @@ public class FunctionRegimeAnalyzer {
                 saveable.addInputSource(src);
             }
 
-            // TODO: use PropertyMapManager to persist
-            // program.getUsrPropertyManager().getObjectPropertyMap(RegimeClassification.PROPERTY_NAME)
+            // TODO: enable PropertyMapManager wiring for persistence
+            // var pmgr = program.getUsrPropertyManager();
+            // var propMap = pmgr.getObjectPropertyMap(RegimeClassification.PROPERTY_NAME);
+            // if (propMap == null) {
+            //     propMap = pmgr.createObjectPropertyMap(
+            //         RegimeClassification.PROPERTY_NAME, RegimeClassification.class);
+            // }
+            // propMap.add(function.getEntryPoint(), saveable);
         } catch (Exception e) {
             // Property storage failed; classification exists in memory only
         }
@@ -185,8 +191,8 @@ public class FunctionRegimeAnalyzer {
     }
 
     private String buildFullRationale(RegimeAssigner.RegimeAssignment assignment,
-                                     ControlFlowAnalyzer.ControlFlowProperties cfProps,
-                                     ComplexityAnalyzer.ComplexityMetrics complexity) {
+                                     ControlFlowProperties cfProps,
+                                     ComplexityMetrics complexity) {
         StringBuilder sb = new StringBuilder();
         sb.append(assignment.rationale());
         sb.append(" | Loops: ").append(cfProps.loopCount());

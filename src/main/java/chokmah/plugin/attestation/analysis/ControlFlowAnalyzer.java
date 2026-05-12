@@ -15,6 +15,7 @@
 package chokmah.plugin.attestation.analysis;
 
 import chokmah.plugin.attestation.model.ControlFlowProperties;
+import chokmah.plugin.attestation.model.MemoryRegion;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.block.*;
 import ghidra.program.model.listing.*;
@@ -31,10 +32,12 @@ import java.util.*;
 public class ControlFlowAnalyzer {
 
     private final Program program;
+    private final List<MemoryRegion> memoryMap;
     private final TaskMonitor monitor;
 
-    public ControlFlowAnalyzer(Program program, TaskMonitor monitor) {
+    public ControlFlowAnalyzer(Program program, List<MemoryRegion> memoryMap, TaskMonitor monitor) {
         this.program = program;
+        this.memoryMap = memoryMap != null ? memoryMap : Collections.emptyList();
         this.monitor = monitor;
     }
 
@@ -87,7 +90,16 @@ public class ControlFlowAnalyzer {
 
             // Detect LOAD/STORE to volatile regions
             if (opcode == PcodeOp.LOAD || opcode == PcodeOp.STORE) {
-                // TODO: check if address is in volatile MMIO region
+                Varnode addrNode = op.getInput(opcode == PcodeOp.LOAD ? 1 : 1);
+                if (addrNode != null && addrNode.isConstant()) {
+                    Address addr = addrNode.getAddress();
+                    for (MemoryRegion region : memoryMap) {
+                        if (region.isVolatile() && region.contains(addr)) {
+                            hasVolatileAccesses = true;
+                            break;
+                        }
+                    }
+                }
             }
 
             // Loop detection via back-edges in control flow graph
@@ -102,12 +114,6 @@ public class ControlFlowAnalyzer {
             }
         }
 
-        // Also check raw disassembly for function pointers in data section
-        // (vtable detection, callback tables)
-        ReferenceManager refMgr = program.getReferenceManager();
-        Address entry = function.getEntryPoint();
-        // TODO: scan data references to this function for callback/vtable patterns
-
         return new ControlFlowProperties(
                 allLoopsBounded,
                 hasIndirectControlFlow,
@@ -121,38 +127,51 @@ public class ControlFlowAnalyzer {
 
     /**
      * Detect if a P-code op represents a back-edge (loop).
-     * Uses HighFunction's basic block graph.
+     * A back-edge is a branch whose target address is <= the source address.
      */
     private boolean isBackEdge(PcodeOp op, HighFunction highFunction) {
-        if (op.getOpcode() != PcodeOp.BRANCH && op.getOpcode() != PcodeOp.CBRANCH) {
+        int opcode = op.getOpcode();
+        if (opcode != PcodeOp.BRANCH && opcode != PcodeOp.CBRANCH) {
             return false;
         }
 
-        // A back-edge jumps to a block that dominates the current block
-        // TODO: implement using BasicBlockGraph and dominator analysis
-        // For now: placeholder heuristic
-        return false;
+        int destIdx = (opcode == PcodeOp.CBRANCH) ? 1 : 0;
+        Varnode dest = op.getInput(destIdx);
+        if (dest == null || !dest.isAddress()) return false;
+
+        Address destAddr = dest.getAddress();
+        Address srcAddr = op.getSeqnum().getTarget();
+        return destAddr.compareTo(srcAddr) <= 0;
     }
 
     /**
      * Analyze whether a detected loop has statically determinable bounds.
      *
      * Regime 1 signature: loop var initialized from constant, incremented
-     * by constant, compared to constant.
+     * by constant, compared to constant. Trace the CBRANCH condition back
+     * through P-code SSA defs; if all leaves are constants, bounds are static.
      *
      * @return true if loop bounds are statically determinable
      */
     private boolean analyzeLoopBounds(PcodeOp loopOp, HighFunction highFunction) {
-        // TODO: implement proper loop bound analysis
-        // 1. Identify induction variable
-        // 2. Check initialization is constant
-        // 3. Check increment is constant
-        // 4. Check termination comparison is against constant
-        // 5. Verify no data-dependent exits
-        //
-        // This requires reaching-definitions analysis on P-code SSA form.
-        // For prototype: conservative default (false = unbounded).
-        return false;
+        if (loopOp.getOpcode() != PcodeOp.CBRANCH) return false;
+        Varnode condition = loopOp.getInput(0);
+        return isConstantDerived(condition, new HashSet<>(), 0);
+    }
+
+    /**
+     * Recursively check if a Varnode is derived entirely from constants.
+     * Depth-limited (max 8 levels) to avoid loops in the SSA graph.
+     */
+    private boolean isConstantDerived(Varnode vn, Set<Varnode> visited, int depth) {
+        if (depth > 8 || vn == null || !visited.add(vn)) return false;
+        if (vn.isConstant()) return true;
+        PcodeOp def = vn.getDef();
+        if (def == null) return false;
+        for (int i = 0; i < def.getNumInputs(); i++) {
+            if (!isConstantDerived(def.getInput(i), visited, depth + 1)) return false;
+        }
+        return true;
     }
 
     /**
