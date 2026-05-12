@@ -10,3 +10,8 @@ dist/
 *.swp
 *~
 .DS_Store
+data/firmware/download/
+data/firmware/built/
+
+# Ghidra temp projects during headless analysis
+.ghidra/

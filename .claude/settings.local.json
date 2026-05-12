@@ -16,7 +16,9 @@
       "Bash(git commit *)",
       "Bash(session-recall-cc list *)",
       "Bash(powershell -Command '$env:JAVA_HOME = \"C:\\\\Program Files\\\\Java\\\\jdk-21.0.11\"; $env:GHIDRA_INSTALL_DIR = \"C:\\\\Tools\\\\ghidra_12.0.4_PUBLIC\"; gradle clean; gradle test 2>&1 | tail -100')",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(curl -s \"https://api.github.com/repos/renode/renode/contents/tests\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(x['name'], x['type']\\) for x in d]\")"
     ]
   }
 }
