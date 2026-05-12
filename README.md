@@ -1,7 +1,7 @@
 # Ghidra Attestation Regime Classifier
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![v0.4.1](https://img.shields.io/badge/version-0.4.1-blue.svg)](#)
+[![v0.4.2](https://img.shields.io/badge/version-0.4.2-blue.svg)](#)
 
 Computability-bounded firmware triage. Classifies every function in an
 embedded firmware image into one of three attestation regimes derived from
@@ -45,18 +45,18 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.4.1.zip`
+Output: `dist/AttestationRegimeClassifier-0.4.2.zip`
 
 ### Install
 
 **Via Ghidra UI:**
 1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.4.1.zip`
+2. Select `dist/AttestationRegimeClassifier-0.4.2.zip`
 3. Restart Ghidra
 
 **Manual (PowerShell):**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.4.1.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.2.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -80,7 +80,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.4.1.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.2.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless
@@ -108,7 +108,7 @@ gradle test
 - `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
 - `WeightedRegimePropagatorTest` (12 tests) — call-graph propagation heuristics, weight thresholds
 
-## Current Status (v0.4.1)
+## Current Status (v0.4.2)
 
 **Fully implemented and tested (78 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
@@ -209,7 +209,7 @@ To cite the AttestationRegimeClassifier plugin:
   title   = {AttestationRegimeClassifier -- Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification},
   author  = {Bilar, Daniyel Yaacov},
   year    = {2026},
-  version = {0.4.1},
+  version = {0.4.2},
   url     = {https://github.com/chokmah/ghidra-attestation-regime}
 }
 ```

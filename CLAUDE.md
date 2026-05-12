@@ -54,7 +54,7 @@ gradle test
 # Build the plugin extension
 gradle buildExtension
 
-# Output: dist/AttestationRegimeClassifier-0.4.1.zip
+# Output: dist/AttestationRegimeClassifier-0.4.2.zip
 ```
 
 ## Install
@@ -64,11 +64,11 @@ Two methods:
 **Via Ghidra UI:**
 1. Open Ghidra
 2. File > Install Extensions > Add
-3. Select `dist/AttestationRegimeClassifier-0.4.1.zip`
+3. Select `dist/AttestationRegimeClassifier-0.4.2.zip`
 
 **Manual:**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.4.1.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.2.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -86,7 +86,7 @@ The plugin runs a **5-step classification pipeline** on every function:
 
 Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.4.1):**
+**Current Build Status (v0.4.2):**
 - ✅ Pure-Java model & decision tree: 78 tests passing
 - ✅ JSON memory map parser: reads STM32F407 fixture
 - ✅ Call-graph propagation with improved regime-based classification

@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.4.2 — 2026-05-12
+
+**Status: Stable** — Firmware headless analysis pipeline bug fixes.
+
+### What's New
+
+- **PowerShell fix** — `run_firmware_analysis.ps1` now uses `Invoke-Expression "cmd.exe /c ..."` to correctly handle pipes and redirects when invoking `analyzeHeadless`
+- **GhidraScript fixes** — `GhidraHeadlessAnalyze.java`: added missing `GhidraScript` import (enables `println()` and `currentProgram`), fixed `int → long` for `getNumAddresses()` return type, removed invalid `toString()` argument
+- **Result**: All 9 firmware ELF files now analyze successfully; 1,501 functions classified; 9 JSON results generated in `data/firmware/results/`
+
+### Testing
+
+78 unit tests passing. Headless batch analysis pipeline verified end-to-end.
+
+---
+
 ## v0.4.1 — 2026-05-12
 
 **Status: Stable** — Firmware test infrastructure and headless analysis pipeline.
