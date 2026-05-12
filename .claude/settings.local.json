@@ -10,7 +10,13 @@
       "PowerShell(gradle buildExtension *)",
       "Bash(session-recall list *)",
       "PowerShell(gradle *)",
-      "PowerShell(Invoke-Item *)"
+      "PowerShell(Invoke-Item *)",
+      "PowerShell(Get-Process *)",
+      "Read(//c/Temp/**)",
+      "Bash(git commit *)",
+      "Bash(session-recall-cc list *)",
+      "Bash(powershell -Command '$env:JAVA_HOME = \"C:\\\\Program Files\\\\Java\\\\jdk-21.0.11\"; $env:GHIDRA_INSTALL_DIR = \"C:\\\\Tools\\\\ghidra_12.0.4_PUBLIC\"; gradle clean; gradle test 2>&1 | tail -100')",
+      "Bash(git push *)"
     ]
   }
 }

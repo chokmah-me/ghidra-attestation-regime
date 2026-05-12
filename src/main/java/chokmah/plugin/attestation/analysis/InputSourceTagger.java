@@ -37,11 +37,17 @@ public class InputSourceTagger {
     private final Program program;
     private final List<MemoryRegion> memoryMap;
     private final TaskMonitor monitor;
+    private Map<Address, List<InputSource>> priorResults;
 
     public InputSourceTagger(Program program, List<MemoryRegion> memoryMap, TaskMonitor monitor) {
         this.program = program;
         this.memoryMap = memoryMap != null ? memoryMap : Collections.emptyList();
         this.monitor = monitor;
+        this.priorResults = Collections.emptyMap();
+    }
+
+    public void setPriorResults(Map<Address, List<InputSource>> priorResults) {
+        this.priorResults = priorResults != null ? priorResults : Collections.emptyMap();
     }
 
     /**
@@ -84,7 +90,20 @@ public class InputSourceTagger {
 
             // Also track CALLs to functions that return external data
             if (op.getOpcode() == PcodeOp.CALL) {
-                // TODO: trace through call to check if callee reads external
+                Varnode callTarget = op.getInput(0);
+                if (callTarget != null && callTarget.isConstant()) {
+                    Address targetAddr = callTarget.getAddress();
+                    if (priorResults.containsKey(targetAddr)) {
+                        List<InputSource> calleeSources = priorResults.get(targetAddr);
+                        calleeSources.forEach(s -> {
+                            if (s.getSourceType() != InputSource.SourceType.CONSTANT &&
+                                    s.getSourceType() != InputSource.SourceType.INTERNAL_STATE &&
+                                    !containsSource(sources, s.getAccessAddress())) {
+                                sources.add(s);
+                            }
+                        });
+                    }
+                }
             }
         }
 
@@ -167,16 +186,71 @@ public class InputSourceTagger {
 
     /**
      * Classify a computed memory access (array index, pointer dereference).
+     * Uses def-use chain walk to resolve constant-folded offsets.
      */
     private InputSource classifyComputedAccess(PcodeOp op, Varnode loadSpace) {
-        // TODO: range analysis to determine if computed access stays within
-        // known table bounds or potentially accesses external memory
-        // For now: conservative default
+        Varnode addrVarnode = op.getInput(1);
+        Optional<Address> resolvedAddr = resolveConstantAddress(addrVarnode, 0);
+
+        if (resolvedAddr.isPresent()) {
+            return classifyMemoryAccess(resolvedAddr.get(), loadSpace);
+        }
+
         return new InputSource(
                 InputSource.SourceType.UNCLASSIFIED_EXT,
                 op.getSeqnum().getTarget(),
                 "Computed address access (pointer/index) - conservative Regime 3a"
         );
+    }
+
+    /**
+     * Walk Varnode def-use chain to resolve constant addresses.
+     * Follows INT_ADD, PTRADD, PTRSUB to combine constant offsets.
+     * Max depth 4 to prevent cycles. Returns empty if unresolvable.
+     */
+    private Optional<Address> resolveConstantAddress(Varnode v, int depth) {
+        if (depth > 4) return Optional.empty();
+
+        if (v.isConstant()) {
+            try {
+                return Optional.of(program.getAddressFactory().getDefaultAddressSpace()
+                        .getAddress(v.getOffset()));
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        }
+
+        PcodeOp defOp = v.getDef();
+        if (defOp == null) return Optional.empty();
+
+        int opcode = defOp.getOpcode();
+        if (opcode == PcodeOp.INT_ADD || opcode == PcodeOp.PTRADD) {
+            Varnode base = defOp.getInput(0);
+            Varnode offset = defOp.getInput(1);
+
+            Optional<Address> baseAddr = resolveConstantAddress(base, depth + 1);
+            if (baseAddr.isPresent() && offset.isConstant()) {
+                try {
+                    return Optional.of(baseAddr.get().add(offset.getOffset()));
+                } catch (Exception e) {
+                    return Optional.empty();
+                }
+            }
+        } else if (opcode == PcodeOp.PTRSUB) {
+            Varnode base = defOp.getInput(0);
+            Varnode offset = defOp.getInput(1);
+
+            Optional<Address> baseAddr = resolveConstantAddress(base, depth + 1);
+            if (baseAddr.isPresent() && offset.isConstant()) {
+                try {
+                    return Optional.of(baseAddr.get().subtract(offset.getOffset()));
+                } catch (Exception e) {
+                    return Optional.empty();
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     /**

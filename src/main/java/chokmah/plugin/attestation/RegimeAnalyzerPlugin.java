@@ -96,6 +96,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
         loadMemoryMapFromProject();
     }
 
+
     @Override
     public void dispose() {
         if (tableColumnProvider != null) {

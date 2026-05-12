@@ -121,6 +121,7 @@ public class FunctionRegimeAnalyzer {
         monitor.initialize(total);
         monitor.setMessage("Classifying functions into attestation regimes...");
 
+        Map<Address, List<InputSource>> priorInputSources = new HashMap<>();
         while (funcs.hasNext() && !monitor.isCancelled()) {
             Function func = funcs.next();
             current++;
@@ -129,8 +130,10 @@ public class FunctionRegimeAnalyzer {
                     func.getName(), current, total));
 
             try {
+                tagger.setPriorResults(priorInputSources);
                 ClassificationResult result = analyzeFunction(func);
                 results.put(func.getEntryPoint(), result);
+                priorInputSources.put(func.getEntryPoint(), result.getInputSources());
 
                 // Store in Ghidra's property manager for persistence
                 storeClassification(func, result);

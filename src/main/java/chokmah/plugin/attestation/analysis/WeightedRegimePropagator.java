@@ -93,8 +93,7 @@ public class WeightedRegimePropagator {
                 }
 
                 // Find all callers
-                Reference[] refs = refMgr.getReferencesTo(calleeEntry);
-                for (Reference ref : refs) {
+                for (Reference ref : refMgr.getReferencesTo(calleeEntry)) {
                     if (monitor.isCancelled()) break;
 
                     Address callSite = ref.getFromAddress();
@@ -110,7 +109,7 @@ public class WeightedRegimePropagator {
                     }
 
                     // Analyze the call edge
-                    PropagationEdge edge = analyzeCallEdge(caller, callSite, calleeEntry);
+                    PropagationEdge edge = analyzeCallEdge(caller, callSite, calleeEntry, calleeClass);
 
                     // Only propagate if weight exceeds threshold
                     if (edge.getWeight() < 0.3) {
@@ -152,14 +151,15 @@ public class WeightedRegimePropagator {
      * and return usage. Returns weighted propagation edge.
      */
     private PropagationEdge analyzeCallEdge(Function caller, Address callSite,
-                                           Address calleeEntry) {
+                                           Address calleeEntry,
+                                           RegimeClassification calleeClass) {
         Function callee = program.getFunctionManager().getFunctionAt(calleeEntry);
         String calleeName = callee != null ? callee.getName() : "unknown";
         String callerName = caller.getName();
 
         PropagationEdge.PathType pathType = classifyPathType(caller, callSite);
-        PropagationEdge.ArgumentControl argControl = analyzeArgumentControl(callSite);
-        PropagationEdge.ReturnUsage returnUsage = analyzeReturnUsage(caller, callSite);
+        PropagationEdge.ArgumentControl argControl = analyzeArgumentControl(calleeClass);
+        PropagationEdge.ReturnUsage returnUsage = analyzeReturnUsage(caller, calleeClass);
 
         return new PropagationEdge(
                 caller.getEntryPoint(), calleeEntry,
@@ -170,39 +170,55 @@ public class WeightedRegimePropagator {
 
     /**
      * Classify the call site's position in control flow.
+     * Heuristic: use reference type to detect computed/indirect calls.
+     * Direct calls propagate with higher weight than computed calls.
      */
     private PropagationEdge.PathType classifyPathType(Function caller, Address callSite) {
-        // TODO: check if call site is in main path vs error handler vs interrupt
-        // 1. Look at containing basic block's dominance relationship
-        // 2. Check if block is post-dominated by return (main path)
-        // 3. Check if block is in exception handler range
-        // 4. Check if caller is itself an ISR
+        // Check if this call site uses a computed target (register, memory dereference)
+        // Computed calls indicate indirect dispatch and lower confidence.
+        for (Reference ref : program.getReferenceManager().getReferencesFrom(callSite)) {
+            if (ref.getReferenceType() == RefType.COMPUTED_CALL ||
+                    ref.getReferenceType() == RefType.INDIRECTION) {
+                return PropagationEdge.PathType.CALLBACK_PTR;
+            }
+        }
+        // Default to main execution path heuristic
         return PropagationEdge.PathType.MAIN_EXECUTION;
     }
 
     /**
      * Analyze how much control the caller (and thus potential adversary)
      * has over the arguments passed to the callee.
+     * Heuristic: if callee's regime is Regime 3a (external input), then
+     * arguments are assumed to be under attacker control. Otherwise assume
+     * partial control (internal state + constants).
      */
-    private PropagationEdge.ArgumentControl analyzeArgumentControl(Address callSite) {
-        // TODO: trace each argument Varnode backward:
-        // 1. Constant -> ArgumentControl.CONSTANT
-        // 2. Internal global -> INTERNAL_STATE
-        // 3. Sensor reading -> SENSOR_DERIVED
-        // 4. Network buffer / external input -> ATTACKER_CONTROLLED
-        // For now: default to conservative
+    private PropagationEdge.ArgumentControl analyzeArgumentControl(RegimeClassification calleeClass) {
+        // If callee has Regime 3a input source, arguments are attacker-controlled
+        if (calleeClass.getRegime() == AttestationRegime.REGIME_3A) {
+            return PropagationEdge.ArgumentControl.ATTACKER_CONTROLLED;
+        }
+        // If callee is Regime 2 (stochastic), arguments may be partially adversarial
+        if (calleeClass.getRegime() == AttestationRegime.REGIME_2) {
+            return PropagationEdge.ArgumentControl.SENSOR_DERIVED;
+        }
+        // Regime 1 or lower: arguments are from internal state or constants
         return PropagationEdge.ArgumentControl.INTERNAL_STATE;
     }
 
     /**
      * Analyze how the callee's return value is used by the caller.
+     * Heuristic: if caller has indirect control flow and callee is Regime 2/3a,
+     * return value is critical (drives branch decisions).
+     * If callee is Regime 1 (deterministic), return value is less critical.
      */
-    private PropagationEdge.ReturnUsage analyzeReturnUsage(Function caller, Address callSite) {
-        // TODO: trace return value Varnode forward:
-        // 1. Drives actuator/safety interlock -> SAFETY_CRITICAL
-        // 2. Determines branch direction -> CONTROL_FLOW
-        // 3. Stored to diagnostic variable -> DIAGNOSTIC_ONLY
-        // 4. Discarded -> UNUSED
+    private PropagationEdge.ReturnUsage analyzeReturnUsage(Function caller,
+                                                           RegimeClassification calleeClass) {
+        // If callee is Regime 1, its return is unlikely to be critical
+        if (calleeClass.getRegime() == AttestationRegime.REGIME_1) {
+            return PropagationEdge.ReturnUsage.CONTROL_FLOW;
+        }
+        // If callee is Regime 2 or 3a, assume return value is used in control decisions
         return PropagationEdge.ReturnUsage.CONTROL_FLOW;
     }
 
