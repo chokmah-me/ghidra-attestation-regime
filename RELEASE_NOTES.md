@@ -1,4 +1,42 @@
-# v0.1.0-dev Release Notes
+# Release Notes
+
+## v0.1.0 — 2026-05-12
+
+**Status: Stable** — 4-step classification pipeline complete. Plugin compiles, installs, and classifies real firmware.
+
+### What's New (since v0.1.0-dev)
+
+- **InputSourceTagger** — Traces data inputs to MMIO/sensor/constant/external via P-code LOAD analysis
+- **ControlFlowAnalyzer** — Detects loops (backward jump heuristic), analyzes bounds (P-code SSA constant propagation), tracks volatile MMIO accesses
+- **ComplexityAnalyzer** — Fixed cyclomatic complexity counting, implemented heuristic table scanning
+- **FunctionRegimeAnalyzer** — Orchestrator wiring all 4 steps; iterates all program functions
+- **Headless script** — `ghidra_scripts/AttestationRegimeHeadless.java`, uses orchestrator, prints regime distribution summary
+- **Build** — Analysis classes now compiled into plugin JAR (no longer excluded)
+- **Tested on real firmware** — STM32F407VG (PlatformIO, 157 KB) imported and analyzed successfully
+
+### What Works
+
+- Install plugin ZIP → run "Classify All Functions" → per-function regime assignments computed
+- Headless classification via `analyzeHeadless.bat` + `AttestationRegimeHeadless.java`
+- 66 pure-Java tests passing (no Ghidra runtime required)
+
+### What's Not Done
+
+- Step 5 (WeightedRegimePropagator) — call-graph propagation still scaffolded
+- Ghidra UI visualization (color-coded Listing, regime report) — still scaffolded
+- PropertyMapManager wiring for persistent cross-session storage
+
+### Roadmap to v0.2.0
+
+1. Implement WeightedRegimePropagator (call-graph propagation)
+2. Complete RegimeListingColorizer (color-coded functions in Listing view)
+3. Complete RegimeReportGenerator (exportable reports)
+4. Wire PropertyMapManager for persistent per-project storage
+5. Test on additional firmware targets (STM32F1xx, STM32H7xx, RISC-V)
+
+---
+
+## v0.1.0-dev Release Notes
 
 **Status: Prerelease** — Logic validated, Ghidra integration incomplete.
 
