@@ -62,7 +62,7 @@ import java.util.*;
                 "Classifies every function into Regime 1 (deterministic), " +
                 "Regime 2 (cooperative stochastic), or Regime 3 (adversarial) " +
                 "based on input source analysis and control flow properties.",
-        servicesRequired = { CodeViewerService.class, DecompilerHighlightService.class }
+        servicesRequired = { CodeViewerService.class }
 )
 public class RegimeAnalyzerPlugin extends ProgramPlugin {
 
@@ -89,7 +89,8 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
 
         // Install visualization components
         tableColumnProvider = new RegimeTableColumnProvider(this);
-        listingColorizer = new RegimeListingColorizer(this);
+        MarkerService markerService = tool.getService(MarkerService.class);
+        listingColorizer = new RegimeListingColorizer(this, markerService);
 
         // Try to load memory map from project data
         loadMemoryMapFromProject();
@@ -207,7 +208,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
         this.results = newResults;
 
         // Update visualizations
-        listingColorizer.updateClassifications(results);
+        listingColorizer.updateClassifications(results, currentProgram);
         tableColumnProvider.updateClassifications(results);
 
         // Show summary
@@ -235,16 +236,6 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
     private void loadSvdFile() {
         GhidraFileChooser chooser = new GhidraFileChooser(tool.getToolFrame());
         chooser.setFileSelectionMode(GhidraFileChooserMode.FILES_ONLY);
-        chooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".svd");
-            }
-            @Override
-            public String getDescription() {
-                return "CMSIS-SVD Files (*.svd)";
-            }
-        });
         chooser.setTitle("Select SVD File");
         File file = chooser.getSelectedFile();
         chooser.dispose();
@@ -265,16 +256,6 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
     private void loadJsonFile() {
         GhidraFileChooser chooser = new GhidraFileChooser(tool.getToolFrame());
         chooser.setFileSelectionMode(GhidraFileChooserMode.FILES_ONLY);
-        chooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".json");
-            }
-            @Override
-            public String getDescription() {
-                return "JSON Memory Maps (*.json)";
-            }
-        });
         chooser.setTitle("Select JSON Memory Map");
         File file = chooser.getSelectedFile();
         chooser.dispose();
@@ -320,7 +301,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
 
     private void clearClassifications() {
         results.clear();
-        listingColorizer.updateClassifications(results);
+        listingColorizer.updateClassifications(results, currentProgram);
         tableColumnProvider.updateClassifications(results);
         Msg.showInfo(this, tool.getToolFrame(), "Cleared",
                 "All regime classifications removed.");

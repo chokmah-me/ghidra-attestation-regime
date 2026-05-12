@@ -147,7 +147,7 @@ public class FunctionRegimeAnalyzer {
 
     /**
      * Store classification in Ghidra's property manager for persistence
-     * across sessions. (TODO: wire PropertyMapManager when core type is available)
+     * across sessions. (TODO: v0.4.0 - requires RegimeClassification to implement Saveable)
      */
     private void storeClassification(Function function, ClassificationResult result) {
         try {
@@ -161,14 +161,17 @@ public class FunctionRegimeAnalyzer {
                 saveable.addInputSource(src);
             }
 
-            // TODO: enable PropertyMapManager wiring for persistence
-            // var pmgr = program.getUsrPropertyManager();
-            // var propMap = pmgr.getObjectPropertyMap(RegimeClassification.PROPERTY_NAME);
-            // if (propMap == null) {
-            //     propMap = pmgr.createObjectPropertyMap(
-            //         RegimeClassification.PROPERTY_NAME, RegimeClassification.class);
-            // }
-            // propMap.add(function.getEntryPoint(), saveable);
+            // TODO: enable PropertyMapManager wiring for persistence in v0.4.0
+            // Currently blocked on RegimeClassification implementing Saveable interface
+            // program.withTransaction("Store regime classification", () -> {
+            //     var pmgr = program.getUsrPropertyManager();
+            //     var propMap = pmgr.getObjectPropertyMap(RegimeClassification.PROPERTY_NAME);
+            //     if (propMap == null) {
+            //         propMap = pmgr.createObjectPropertyMap(
+            //             RegimeClassification.PROPERTY_NAME, RegimeClassification.class);
+            //     }
+            //     propMap.add(function.getEntryPoint(), saveable);
+            // });
         } catch (Exception e) {
             // Property storage failed; classification exists in memory only
         }

@@ -41,6 +41,48 @@ public class ControlFlowAnalyzer {
         this.monitor = monitor;
     }
 
+    /**
+     * Check if a Varnode is derived from external/volatile sources (MMIO, sensors).
+     * SSA walk similar to isConstantDerived, but checks LOAD address against memory map.
+     */
+    private boolean isExternallyDerived(Varnode vn, Set<Varnode> visited, int depth) {
+        if (depth > 8 || vn == null || !visited.add(vn)) return false;
+
+        PcodeOp def = vn.getDef();
+        if (def == null) return false;
+
+        int opcode = def.getOpcode();
+
+        // If defined by a LOAD, check its address against the memory map
+        if (opcode == PcodeOp.LOAD) {
+            Varnode addrNode = def.getInput(1);
+            if (addrNode != null && addrNode.isConstant()) {
+                Address addr = addrNode.getAddress();
+                for (MemoryRegion region : memoryMap) {
+                    if (region.isVolatile() && region.contains(addr)) {
+                        return true;  // Load from volatile/MMIO
+                    }
+                }
+            }
+            // Unclassified load address: conservatively assume external
+            if (addrNode != null && !addrNode.isConstant()) {
+                return true;
+            }
+        }
+
+        // COPY/CAST/INT_* ops: recurse on inputs
+        if (opcode == PcodeOp.COPY || opcode == PcodeOp.CAST ||
+                (opcode >= PcodeOp.INT_EQUAL && opcode <= PcodeOp.INT_ZEXT)) {
+            for (int i = 0; i < def.getNumInputs(); i++) {
+                if (isExternallyDerived(def.getInput(i), visited, depth + 1)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 
     /**
      * Analyze control flow of a function for regime-determining properties.
@@ -50,6 +92,7 @@ public class ControlFlowAnalyzer {
         boolean hasIndirectControlFlow = false;
         boolean hasFloatingPoint = false;
         boolean hasVolatileAccesses = false;
+        boolean hasExternallyInfluencedBranches = false;
         int loopCount = 0;
         List<String> unboundedDescriptions = new ArrayList<>();
         List<String> indirectDescriptions = new ArrayList<>();
@@ -66,9 +109,8 @@ public class ControlFlowAnalyzer {
 
             int opcode = op.getOpcode();
 
-            // Detect indirect control flow
-            if (opcode == PcodeOp.BRANCHIND || opcode == PcodeOp.CALLIND ||
-                    opcode == PcodeOp.CALLIND) {
+            // Detect indirect control flow (fixed: was CALLIND || CALLIND)
+            if (opcode == PcodeOp.BRANCHIND || opcode == PcodeOp.CALLIND) {
                 hasIndirectControlFlow = true;
                 indirectDescriptions.add(String.format(
                         "Indirect %s at %s",
@@ -78,9 +120,14 @@ public class ControlFlowAnalyzer {
 
             // Detect CBRANCH (conditional branch) for data-dependent control flow
             if (opcode == PcodeOp.CBRANCH) {
-                // TODO: trace predicate Varnode to determine if it depends
-                // on Regime 2/3 input sources. Requires cross-step coordination
-                // with InputSourceTagger results.
+                // Trace the condition Varnode back through P-code SSA defs
+                // If it depends on external/volatile input, flag as externally-influenced branch
+                Varnode condition = op.getInput(0);
+                if (isExternallyDerived(condition, new HashSet<>(), 0)) {
+                    hasExternallyInfluencedBranches = true;
+                    indirectDescriptions.add(String.format(
+                            "External-influenced branch at %s", op.getSeqnum().getTarget()));
+                }
             }
 
             // Detect floating point operations
@@ -114,9 +161,14 @@ public class ControlFlowAnalyzer {
             }
         }
 
+        // If we found externally-influenced branches, we can't guarantee deterministic control flow
+        if (hasExternallyInfluencedBranches) {
+            allLoopsBounded = false;
+        }
+
         return new ControlFlowProperties(
                 allLoopsBounded,
-                hasIndirectControlFlow,
+                hasIndirectControlFlow || hasExternallyInfluencedBranches,
                 hasFloatingPoint,
                 hasVolatileAccesses,
                 loopCount,
@@ -176,16 +228,67 @@ public class ControlFlowAnalyzer {
 
     /**
      * Detect function pointer usage (vtables, callback registration).
-     * Scans the function's code references for patterns like:
-     //   - Loading address from data section then calling it
-     //   - Storing function address to a structure field (callback registration)
+     * Scans the function's P-code for patterns like:
+     * - Loading address from data section then calling it (vtable call)
+     * - Storing function address to a structure field (callback registration)
      */
-    public boolean hasFunctionPointerUsage(Function function) {
-        // TODO: analyze P-code for:
-        // 1. LOAD of a code address from a data location, followed by CALLIND
-        // 2. STORE of this function's entry point to a data structure
-        //
-        // Both patterns indicate callback/vtable behavior.
+    public boolean hasFunctionPointerUsage(HighFunction highFunction) {
+        if (highFunction == null) return false;
+
+        Iterator<PcodeOpAST> ops = highFunction.getPcodeOps();
+        Set<Varnode> dataAddresses = new HashSet<>();  // Track addresses loaded from data
+
+        // First pass: identify LOAD ops from data locations (not code)
+        while (ops.hasNext()) {
+            PcodeOpAST op = ops.next();
+            int opcode = op.getOpcode();
+
+            // Pattern 1: LOAD from data section, then CALLIND on the loaded value
+            if (opcode == PcodeOp.LOAD) {
+                Varnode addrNode = op.getInput(1);
+                Varnode result = op.getOutput();
+                if (result != null && addrNode != null && addrNode.isConstant()) {
+                    Address loadAddr = addrNode.getAddress();
+                    // If not a code address, it's likely data
+                    Function loadedFunc = program.getFunctionManager().getFunctionAt(loadAddr);
+                    if (loadedFunc == null) {
+                        dataAddresses.add(result);
+                    }
+                }
+            }
+
+            // Pattern 2: CALLIND where target is defined by a loaded value
+            if (opcode == PcodeOp.CALLIND) {
+                Varnode target = op.getInput(0);
+                if (target != null) {
+                    PcodeOp targetDef = target.getDef();
+                    if (targetDef != null) {
+                        // Check if target is a LOAD (indirect function pointer)
+                        if (targetDef.getOpcode() == PcodeOp.LOAD) {
+                            return true;
+                        }
+                        // Check if target comes from a loaded data value
+                        if (dataAddresses.contains(target)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // Pattern 3: STORE of a constant code address (callback registration)
+            if (opcode == PcodeOp.STORE) {
+                Varnode valueNode = op.getInput(1);
+                if (valueNode != null && valueNode.isConstant()) {
+                    Address storedAddr = valueNode.getAddress();
+                    Function storedFunc = program.getFunctionManager().getFunctionAt(storedAddr);
+                    if (storedFunc != null) {
+                        // Storing a function address indicates callback/vtable pattern
+                        return true;
+                    }
+                }
+            }
+        }
+
         return false;
     }
 }

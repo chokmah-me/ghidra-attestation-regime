@@ -15,9 +15,11 @@ package chokmah.plugin.attestation.visualization;
 import chokmah.plugin.attestation.RegimeAnalyzerPlugin;
 import chokmah.plugin.attestation.model.*;
 import ghidra.app.decompiler.component.*;
+import ghidra.app.services.MarkerService;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
+import ghidra.util.Msg;
 
 import java.awt.*;
 import java.util.*;
@@ -29,6 +31,9 @@ import java.util.List;
 public class RegimeListingColorizer {
 
     private final RegimeAnalyzerPlugin plugin;
+    private final MarkerService markerService;
+    private Map<Address, ClassificationResult> currentResults = new HashMap<>();
+    private Map<String, ghidra.app.services.MarkerSet> markerSets = new HashMap<>();
 
     // ARGB colors matching AttestationRegime enum
     private static final Color COLOR_REGIME_1 = new Color(0x4C, 0xAF, 0x50, 0x40);   // green translucent
@@ -37,20 +42,41 @@ public class RegimeListingColorizer {
     private static final Color COLOR_PROVENANCE = new Color(0xFF, 0x98, 0x00, 0x50); // orange translucent
     private static final Color COLOR_UNCLASSIFIED = new Color(0x9E, 0x9E, 0x9E, 0x30); // gray translucent
 
-    public RegimeListingColorizer(RegimeAnalyzerPlugin plugin) {
+    public RegimeListingColorizer(RegimeAnalyzerPlugin plugin, MarkerService markerService) {
         this.plugin = plugin;
+        this.markerService = markerService;
     }
 
     public void dispose() {
-        // Unregister colorizers
+        currentResults.clear();
+        markerSets.clear();
     }
 
-    public void updateClassifications(Map<Address, ClassificationResult> results) {
-        // TODO: trigger Listing and Function Graph repaint
-        // Ghidra's colorizing is typically done via:
-        // 1. MarkerService for margin markers
-        // 2. ListingModel for background color
-        // 3. FunctionGraphService for graph node colors
+    public void updateClassifications(Map<Address, ClassificationResult> results, Program program) {
+        this.currentResults = new HashMap<>(results);
+
+        if (markerService != null && program != null && !results.isEmpty()) {
+            // Clear old markers before creating new ones
+            for (ghidra.app.services.MarkerSet ms : markerSets.values()) {
+                markerService.removeMarker(ms, program);
+            }
+            markerSets.clear();
+
+            // Create new markers for each regime
+            for (AttestationRegime regime : AttestationRegime.values()) {
+                ghidra.app.services.MarkerSet ms = markerService.createPointMarker(
+                        "Regime_" + regime.name(), regime.getLabel(), program,
+                        MarkerService.HIGHLIGHT_PRIORITY, true, true, false,
+                        getColorForRegime(regime), null);
+
+                for (Map.Entry<Address, ClassificationResult> entry : results.entrySet()) {
+                    if (entry.getValue().getRegime() == regime) {
+                        ms.add(entry.getKey());
+                    }
+                }
+                markerSets.put(regime.name(), ms);
+            }
+        }
     }
 
     /**
@@ -81,23 +107,21 @@ public class RegimeListingColorizer {
 
     /**
      * Apply regime colors to the Function Graph.
-     * Each basic block colored by its containing function's regime.
+     * FunctionGraph coloring deferred to v0.3.0 (requires FunctionGraphService integration).
+     * Logs a note instead.
      */
     public void colorizeFunctionGraph(Program program,
                                       Map<Address, ClassificationResult> results) {
-        // TODO: implement via FunctionGraphService
-        // 1. Get FunctionGraph for current function
-        // 2. For each vertex (basic block), find containing function
-        // 3. Apply regime color to vertex background
+        Msg.warn(this, "FunctionGraph coloring not yet implemented. " +
+                "See Function Table and Listing view for regime classifications.");
     }
 
     /**
      * Install margin markers in Listing view.
+     * Creates colored margin markers for each regime class at function entry points.
      */
     public void installListingMarkers(Program program,
                                        Map<Address, ClassificationResult> results) {
-        // TODO: implement via MarkerService
-        // 1. For each classified function, add a colored marker at entry point
-        // 2. Marker tooltip shows regime label and rationale
+        updateClassifications(results, program);
     }
 }
