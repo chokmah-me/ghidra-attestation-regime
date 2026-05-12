@@ -42,18 +42,18 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.1.0.zip`
+Output: `dist/AttestationRegimeClassifier-0.3.0.zip`
 
 ### Install
 
 **Via Ghidra UI:**
 1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.1.0.zip`
+2. Select `dist/AttestationRegimeClassifier-0.3.0.zip`
 3. Restart Ghidra
 
 **Manual (PowerShell):**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.1.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.3.0.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -77,7 +77,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.1.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.3.0.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless
@@ -105,7 +105,7 @@ gradle test
 - `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
 - `WeightedRegimePropagatorTest` (13 tests) — call-graph propagation heuristics, weight thresholds
 
-## Current Status (v0.2.0)
+## Current Status (v0.3.0)
 
 **Fully implemented and tested (79 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
@@ -113,23 +113,23 @@ gradle test
 - ✅ Known constant table identification — CRC32, AES, SHA (17 tests)
 - ✅ JSON memory map parser, STM32F407 fixture included (7 integration tests)
 - ✅ InputSourceTagger — traces data flows to MMIO/sensor/constant/external sources
-- ✅ ControlFlowAnalyzer — detects loop bounds, indirect control flow, volatile accesses
+- ✅ ControlFlowAnalyzer — CBRANCH predicate tracing (isExternallyDerived SSA walk), hasFunctionPointerUsage detection, loop bounds, indirect control flow, volatile accesses
 - ✅ ComplexityAnalyzer — cyclomatic complexity, table scanning, P-code op count
 - ✅ FunctionRegimeAnalyzer — 4-step pipeline orchestrator, all functions, progress tracking
-- ✅ WeightedRegimePropagator — call-graph propagation with heuristic edge weights (13 tests)
-- ✅ RegimeAnalyzerPlugin — Ghidra UI menu integration (file chooser bug fixed)
+- ✅ WeightedRegimePropagator — call-graph propagation with improved regime-based classification (13 tests)
+- ✅ RegimeAnalyzerPlugin — Ghidra UI menu integration, MarkerService wiring
 - ✅ RegimeAnalysisTask — background task launcher
-- ✅ RegimeListingColorizer — classification result caching (MarkerService integration in v0.3.0)
+- ✅ RegimeListingColorizer — MarkerService integration; colored margin markers per regime in Listing view
 - ✅ RegimeTableColumnProvider — regime column for Function Table
 - ✅ RegimeReportGenerator — markdown classification report output
 - ✅ Headless script — `ghidra_scripts/AttestationRegimeHeadless.java`
 - ✅ Plugin ZIP installable in Ghidra 12, all classes compiled
 
-**Deferred to v0.3.0:**
-- P-code Varnode slicing for precise argument/return analysis (current: heuristics)
-- MarkerService integration for Listing view margin markers
-- FunctionGraph node coloring
-- Project-persistence for memory maps
+**Deferred to v0.4.0:**
+- PropertyMapManager persistence (requires RegimeClassification to implement Saveable interface)
+- InputSourceTagger computed-access range analysis (needs alias analysis)
+- Call-chain taint propagation (interprocedural analysis)
+- FunctionGraph node coloring (needs FunctionGraphService integration)
 
 ## Sample Memory Maps
 

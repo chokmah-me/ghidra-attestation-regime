@@ -78,21 +78,24 @@ Then restart Ghidra.
 
 The plugin runs a **5-step classification pipeline** on every function:
 
-1. **InputSourceTagger** — Traces data inputs to their ultimate source (MMIO, sensor, constant, etc.) — **SCAFFOLDED**
-2. **ControlFlowAnalyzer** — Detects loop bounds, recursion, indirect branches — **SCAFFOLDED**
+1. **InputSourceTagger** — Traces data inputs to their ultimate source (MMIO, sensor, constant, etc.) — ⚠️ Computed-access range analysis deferred
+2. **ControlFlowAnalyzer** — CBRANCH predicate tracing (SSA walk for volatile inputs), hasFunctionPointerUsage detection, loop bounds, indirect branches — ✅ Implemented
 3. **ComplexityAnalyzer** — Computes cyclomatic complexity, table sizes, pcode operation counts — ✅ Working
 4. **RegimeAssigner** — Decision tree assigns Regime 1/2/3a/Provenance/Unclassified — ✅ Production-grade, fully tested
 5. **WeightedRegimePropagator** — Propagates regimes through the call graph with heuristic edge weights — ✅ Implemented
 
-Results are cached for Listing view (green = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified). MarkerService coloring integrated in v0.3.0.
+Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.2.0):**
+**Current Build Status (v0.3.0):**
 - ✅ Pure-Java model & decision tree: 79 tests passing
 - ✅ JSON memory map parser: reads STM32F407 fixture
-- ✅ Call-graph propagation heuristics with weight formulas
+- ✅ Call-graph propagation with improved regime-based classification
+- ✅ ControlFlowAnalyzer: CBRANCH predicate tracing, hasFunctionPointerUsage detection
 - ✅ Plugin classes, UI menu integration, report generator: all compiled and included in ZIP
-- ⚠️ Analysis classes (steps 1, 2): still scaffolded, require Ghidra runtime for full P-code analysis
-- ⚠️ MarkerService/FunctionGraph visualization: deferred to v0.3.0
+- ✅ MarkerService wiring: colored margin markers in Listing view per regime
+- ⚠️ InputSourceTagger: computed-access range analysis still conservative (returns UNCLASSIFIED_EXT); call-chain taint deferred to v0.4.0
+- ⚠️ FunctionGraph coloring: deferred to v0.4.0
+- ⚠️ PropertyMapManager persistence: deferred to v0.4.0 (requires RegimeClassification to implement Saveable)
 
 ## Code Structure
 
@@ -208,8 +211,7 @@ start build/reports/tests/test/index.html
 2. **Requires memory map** for meaningful results. Monolithic firmware classifies as mostly Regime 3 (correct: it's unauditable without partitioning).
 3. **Alias analysis** on stripped firmware is imprecise (over-approximation is safe for security).
 4. **No person-hour estimates** — complexity does not reliably predict verification effort.
-5. **Propagator uses heuristics (v0.2.0)** — CFG-based edge classification without full P-code Varnode slicing. Full P-code analysis in v0.3.0.
-6. **Analysis classes are scaffolded** — InputSourceTagger and ControlFlowAnalyzer still return defaults; need Ghidra runtime for real P-code analysis in v0.3.0.
+5. **InputSourceTagger range analysis** (computed/indexed loads) returns conservative UNCLASSIFIED_EXT. Call-chain taint propagation deferred to v0.4.0. ControlFlowAnalyzer CBRANCH predicate tracing is implemented (isExternallyDerived SSA walk).
 
 ## Gradle Notes
 
