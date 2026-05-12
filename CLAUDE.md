@@ -54,7 +54,7 @@ gradle test
 # Build the plugin extension
 gradle buildExtension
 
-# Output: dist/AttestationRegimeClassifier-0.1.0.zip
+# Output: dist/AttestationRegimeClassifier-0.4.0.zip
 ```
 
 ## Install
@@ -64,11 +64,11 @@ Two methods:
 **Via Ghidra UI:**
 1. Open Ghidra
 2. File > Install Extensions > Add
-3. Select `dist/AttestationRegimeClassifier-0.1.0.zip`
+3. Select `dist/AttestationRegimeClassifier-0.4.0.zip`
 
 **Manual:**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.1.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.4.0.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -143,6 +143,24 @@ Memory maps are **critical for accuracy**. Without them, the classifier defaults
 
 ### JSON Format
 
+Two equivalent schemas are supported:
+
+**Option A (start/end bounds):**
+```json
+{
+  "regions": [
+    {
+      "name": "UART1",
+      "start": "0x40011000",
+      "end": "0x40011FFF",
+      "regime": "REGIME_3A",
+      "volatile": true
+    }
+  ]
+}
+```
+
+**Option B (baseAddress/size):**
 ```json
 {
   "regions": [
@@ -152,19 +170,12 @@ Memory maps are **critical for accuracy**. Without them, the classifier defaults
       "size": 4096,
       "regime": "REGIME_3A",
       "volatile": true
-    },
-    {
-      "name": "ADC1",
-      "baseAddress": "0x40012000",
-      "size": 256,
-      "regime": "REGIME_2",
-      "volatile": true
     }
   ]
 }
 ```
 
-Example: `data/stm32f407_memory_map.json` (STM32F407VG OpenPLC target)
+Example: `data/stm32f407_memory_map.json` (STM32F407VG OpenPLC target) — uses start/end format.
 
 ## Testing
 
@@ -192,7 +203,19 @@ start build/reports/tests/test/index.html
 - WeightedRegimePropagatorTest (13) — call-graph propagation weight formulas, thresholds, heuristics
 - IntegrationE2eTest (7) — end-to-end pipeline with realistic STM32F407 data
 
-**What's tested:** Pure-Java model, parser, decision tree, propagator heuristics. **What's not:** The analysis classes (InputSourceTagger, ControlFlowAnalyzer) require live Ghidra runtime and are scaffolded.
+**What's tested:** Pure-Java model, parser, decision tree, propagator heuristics. **What's not tested:** The Ghidra-dependent analyzer classes (InputSourceTagger, ControlFlowAnalyzer, ComplexityAnalyzer) require live Ghidra runtime; full test coverage deferred.
+
+## Firmware Test Collection
+
+Real firmware ELF binaries for testing and validation:
+
+- **Location:** `data/firmware/`
+- **Download:** `scripts/fetch_firmware.ps1` downloads 9 pre-built ARM ELF files from Antmicro CDN (~9 MB)
+- **Manifest:** `data/firmware/manifest.json` catalogs each binary with expected regime distribution
+- **Headless analysis:** `scripts/run_firmware_analysis.ps1` batch-classifies all ELFs via Ghidra
+- **Test corpus:** Zephyr, RIOT, Tock, STM32CubeMX firmware; diverse peripheral patterns
+
+See `data/firmware/README.md` for usage details.
 
 ## Three Regimes (Quick Reference)
 

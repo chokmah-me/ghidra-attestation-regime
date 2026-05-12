@@ -117,8 +117,9 @@ WeightedRegimePropagator (propagate through call graph)
 JSON output (regimeCounts, functionDetails)
 ```
 
-Currently implemented: pure-Java model (RegimeAssigner, WeightedRegimePropagator).
-Scaffolded but Ghidra-runtime dependent: InputSourceTagger, ControlFlowAnalyzer, ComplexityAnalyzer.
+**Implemented in v0.4.0:**
+- Pure-Java model: RegimeAssigner (decision tree), WeightedRegimePropagator (call-graph propagation)
+- Ghidra-dependent: InputSourceTagger (call-chain taint + computed address range analysis), ControlFlowAnalyzer (CBRANCH predicate tracing), ComplexityAnalyzer (P-code metrics)
 
 ## References
 
@@ -133,3 +134,9 @@ Scaffolded but Ghidra-runtime dependent: InputSourceTagger, ControlFlowAnalyzer,
 - `manifest.json` is committed; results JSON is committed (for regression testing)
 - Memory map (`data/stm32f407_memory_map.json`) is critical for meaningful results; without it, classification defaults to heuristic (lower confidence)
 - MMIO regions must be marked volatile in Ghidra before classification (affects decompiler behavior)
+
+---
+
+**License:** MIT — see root [LICENSE](../../LICENSE)
+
+**Author:** Daniyel Yaacov Bilar, Chokmah LLC

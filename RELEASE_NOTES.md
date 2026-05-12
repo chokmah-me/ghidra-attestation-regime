@@ -1,5 +1,29 @@
 # Release Notes
 
+## v0.4.1-dev — 2026-05-12
+
+**Status: In Development** — Firmware test infrastructure and headless analysis pipeline.
+
+### What's New
+
+- **9 pre-built ARM ELF test corpus** — Downloaded from Antmicro CDN (Renode test suite): Zephyr, RIOT, Tock, STM32CubeMX firmware for STM32F0/F103/F407/F412
+- **Headless batch analysis** — `scripts/run_firmware_analysis.ps1` orchestrates Ghidra `analyzeHeadless` on multiple ELFs; `scripts/GhidraHeadlessAnalyzer.java` GhidraScript classifies functions and outputs JSON regime distributions
+- **Firmware download script** — `scripts/fetch_firmware.ps1` batch-downloads all 9 ELFs from Antmicro CDN
+- **Test manifest** — `data/firmware/manifest.json` catalogs each binary with expected regime distributions (Regime 1/2/3a/Provenance coverage)
+- **PlatformIO project configs** — `data/pio_projects/` templates for ADC, GPIO EXTI, Timer examples (STM32F407)
+- **LICENSE and CITATION.cff** — MIT license; machine-readable citation metadata
+
+### Testing
+
+79 unit tests still passing. New regression capability: batch-classify real firmware and compare regime distributions across versions.
+
+### What's Deferred (v0.5.0 candidates)
+
+- FunctionGraph vertex coloring (requires FunctionGraphService API confirmation)
+- PropertyMapManager persistence (requires Ghidra Saveable API research)
+
+---
+
 ## v0.4.0 — 2026-05-12
 
 **Status: Stable** — Inter-procedural taint propagation and computed address range analysis.
@@ -156,4 +180,4 @@ To help complete the analysis pipeline:
 
 **Release date:** 2026-05-12  
 **Author:** Daniyel Yaacov Bilar, Chokmah LLC  
-**License:** [Check LICENSE file]
+**License:** MIT — see [LICENSE](LICENSE)

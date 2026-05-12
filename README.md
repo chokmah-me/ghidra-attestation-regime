@@ -1,5 +1,8 @@
 # Ghidra Attestation Regime Classifier
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![v0.4.0](https://img.shields.io/badge/version-0.4.0-blue.svg)](#)
+
 Computability-bounded firmware triage. Classifies every function in an
 embedded firmware image into one of three attestation regimes derived from
 Bilar (2026), "Three Regimes of Capability Attestation for Autonomous
@@ -105,14 +108,14 @@ gradle test
 - `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
 - `WeightedRegimePropagatorTest` (13 tests) — call-graph propagation heuristics, weight thresholds
 
-## Current Status (v0.3.0)
+## Current Status (v0.4.0 + Firmware Test Infrastructure)
 
 **Fully implemented and tested (79 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
 - ✅ Input source categorization (13 tests)
 - ✅ Known constant table identification — CRC32, AES, SHA (17 tests)
 - ✅ JSON memory map parser, STM32F407 fixture included (7 integration tests)
-- ✅ InputSourceTagger — traces data flows to MMIO/sensor/constant/external sources
+- ✅ InputSourceTagger — traces data flows to MMIO/sensor/constant/external sources; call-chain taint propagation; computed address range analysis (Varnode def-use constant folding, depth 4)
 - ✅ ControlFlowAnalyzer — CBRANCH predicate tracing (isExternallyDerived SSA walk), hasFunctionPointerUsage detection, loop bounds, indirect control flow, volatile accesses
 - ✅ ComplexityAnalyzer — cyclomatic complexity, table scanning, P-code op count
 - ✅ FunctionRegimeAnalyzer — 4-step pipeline orchestrator, all functions, progress tracking
@@ -122,14 +125,21 @@ gradle test
 - ✅ RegimeListingColorizer — MarkerService integration; colored margin markers per regime in Listing view
 - ✅ RegimeTableColumnProvider — regime column for Function Table
 - ✅ RegimeReportGenerator — markdown classification report output
-- ✅ Headless script — `ghidra_scripts/AttestationRegimeHeadless.java`
 - ✅ Plugin ZIP installable in Ghidra 12, all classes compiled
 
-**Deferred to v0.4.0:**
+**v0.4.0 additions:**
+- ✅ InputSourceTagger computed address range analysis (Varnode def-use chain, depth 4)
+- ✅ Call-chain taint propagation (CALL opcode interprocedural tracing)
+- ✅ MarkerService wiring (green/yellow/red/orange/gray margin markers)
+
+**Post-v0.4.0 additions (Firmware Test Infrastructure):**
+- ✅ 9 pre-built ARM ELF firmware test corpus (Antmicro CDN / Renode suite)
+- ✅ Headless analysis pipeline (`scripts/fetch_firmware.ps1`, `scripts/run_firmware_analysis.ps1`)
+- ✅ PlatformIO project configs for STM32F407 examples (ADC, GPIO EXTI, Timer)
+
+**Deferred:**
 - PropertyMapManager persistence (requires RegimeClassification to implement Saveable interface)
-- InputSourceTagger computed-access range analysis (needs alias analysis)
-- Call-chain taint propagation (interprocedural analysis)
-- FunctionGraph node coloring (needs FunctionGraphService integration)
+- FunctionGraph node coloring (needs FunctionGraphService integration confirmation)
 
 ## Sample Memory Maps
 
@@ -190,11 +200,31 @@ Regime Classification for Embedded Safety Systems"
 
 Venue: USENIX Security, CCS, WOOT, or S4x.
 
+## Cite This Work
+
+To cite the AttestationRegimeClassifier plugin:
+
+```bibtex
+@software{bilar2026attestationregimeclassifier,
+  title   = {AttestationRegimeClassifier -- Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification},
+  author  = {Bilar, Daniyel Yaacov},
+  year    = {2026},
+  version = {0.4.0},
+  url     = {https://github.com/chokmah/ghidra-attestation-regime}
+}
+```
+
+See [CITATION.cff](CITATION.cff) for standard citation metadata.
+
 ## References
 
 - Bilar (2026). Three Regimes of Capability Attestation. Zenodo 20114610.
 - Bilar (2026). The Computability Filter. Zenodo 19818321.
 - Bilar (2026). Shibboleth Lattice Simulation. Zenodo 20090834.
 - Bilar (2026). Volt Typhoon as nth-Order Bleeding. Zenodo 19739954.
+
+---
+
+**License:** MIT — see [LICENSE](LICENSE)
 
 Daniyel Yaacov Bilar, Chokmah LLC, Vermont.
