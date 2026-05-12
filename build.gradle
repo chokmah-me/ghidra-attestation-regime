@@ -21,6 +21,11 @@ sourceSets {
             srcDirs = ['src/main/resources']
         }
     }
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
 }
 
 repositories {
@@ -33,10 +38,14 @@ repositories {
 dependencies {
     compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Framework", include: '**/*.jar')
     compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Features", include: '**/*.jar')
-    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Processors', include: '**/*.jar')
+    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Processors", include: '**/*.jar')
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 task buildExtension(type: Zip) {
