@@ -114,7 +114,7 @@ foreach ($jsonFile in Get-ChildItem $ResultsDir -Filter "*.json" -ErrorAction Si
     $firmware = $content.firmware
     $counts = $content.regimeCounts
 
-    Write-Host "  $firmware:"
+    Write-Host "  ${firmware}:"
     Write-Host "    Total functions: $($content.totalFunctions)"
     foreach ($regime in $counts.PSObject.Properties) {
         Write-Host "      $($regime.Name): $($regime.Value)"
