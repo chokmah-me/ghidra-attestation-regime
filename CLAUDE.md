@@ -48,7 +48,7 @@ This instantiates the Computability Filter (Bilar 2026) as a practical triage to
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-21.0.11"
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
-# Run tests (66 tests, no Ghidra runtime required)
+# Run tests (79 tests, no Ghidra runtime required)
 gradle test
 
 # Build the plugin extension
@@ -82,15 +82,17 @@ The plugin runs a **5-step classification pipeline** on every function:
 2. **ControlFlowAnalyzer** — Detects loop bounds, recursion, indirect branches — **SCAFFOLDED**
 3. **ComplexityAnalyzer** — Computes cyclomatic complexity, table sizes, pcode operation counts — ✅ Working
 4. **RegimeAssigner** — Decision tree assigns Regime 1/2/3a/Provenance/Unclassified — ✅ Production-grade, fully tested
-5. **WeightedRegimePropagator** — Propagates regimes through the call graph — **SCAFFOLDED**
+5. **WeightedRegimePropagator** — Propagates regimes through the call graph with heuristic edge weights — ✅ Implemented
 
-Results are color-coded in the Listing view (green = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
+Results are cached for Listing view (green = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified). MarkerService coloring integrated in v0.3.0.
 
-**Current Build Status:**
-- ✅ Pure-Java model & decision tree: 66 tests passing
+**Current Build Status (v0.2.0):**
+- ✅ Pure-Java model & decision tree: 79 tests passing
 - ✅ JSON memory map parser: reads STM32F407 fixture
-- ⚠️ Analysis classes (steps 1, 2, 5): excluded from build, require Ghidra runtime
-- ⚠️ Visualization & reporting: scaffolded
+- ✅ Call-graph propagation heuristics with weight formulas
+- ✅ Plugin classes, UI menu integration, report generator: all compiled and included in ZIP
+- ⚠️ Analysis classes (steps 1, 2): still scaffolded, require Ghidra runtime for full P-code analysis
+- ⚠️ MarkerService/FunctionGraph visualization: deferred to v0.3.0
 
 ## Code Structure
 
@@ -163,7 +165,7 @@ Example: `data/stm32f407_memory_map.json` (STM32F407VG OpenPLC target)
 ## Testing
 
 ```powershell
-# Run all 66 tests (pure Java, no Ghidra runtime required)
+# Run all 79 tests (pure Java, no Ghidra runtime required)
 gradle test
 
 # Run specific test classes
@@ -171,20 +173,22 @@ gradle test --tests chokmah.plugin.attestation.model.AttestationRegimeTest
 gradle test --tests chokmah.plugin.attestation.model.KnownConstantTablesTest
 gradle test --tests chokmah.plugin.attestation.model.InputSourceTest
 gradle test --tests chokmah.plugin.attestation.analysis.RegimeAssignerTest
+gradle test --tests chokmah.plugin.attestation.analysis.WeightedRegimePropagatorTest
 gradle test --tests chokmah.plugin.attestation.IntegrationE2eTest
 
 # View HTML test report
 start build/reports/tests/test/index.html
 ```
 
-**Test Coverage (5 classes, 66 tests):**
+**Test Coverage (6 classes, 79 tests):**
 - AttestationRegimeTest (13) — regime enum properties, color coding, dominance
 - InputSourceTest (13) — source type mapping, regime inheritance
 - KnownConstantTablesTest (17) — CRC/AES/SHA fingerprinting
 - RegimeAssignerTest (16) — decision tree logic, priority rules
+- WeightedRegimePropagatorTest (13) — call-graph propagation weight formulas, thresholds, heuristics
 - IntegrationE2eTest (7) — end-to-end pipeline with realistic STM32F407 data
 
-**What's tested:** Pure-Java model, parser, decision tree. **What's not:** The analysis classes (InputSourceTagger, ControlFlowAnalyzer, WeightedRegimePropagator) require live Ghidra runtime and are scaffolded.
+**What's tested:** Pure-Java model, parser, decision tree, propagator heuristics. **What's not:** The analysis classes (InputSourceTagger, ControlFlowAnalyzer) require live Ghidra runtime and are scaffolded.
 
 ## Three Regimes (Quick Reference)
 
@@ -204,7 +208,8 @@ start build/reports/tests/test/index.html
 2. **Requires memory map** for meaningful results. Monolithic firmware classifies as mostly Regime 3 (correct: it's unauditable without partitioning).
 3. **Alias analysis** on stripped firmware is imprecise (over-approximation is safe for security).
 4. **No person-hour estimates** — complexity does not reliably predict verification effort.
-5. **Analysis classes are scaffolded** — InputSourceTagger and ControlFlowAnalyzer need completion to produce real results in Ghidra UI. See TESTING_ROADMAP.md for next steps.
+5. **Propagator uses heuristics (v0.2.0)** — CFG-based edge classification without full P-code Varnode slicing. Full P-code analysis in v0.3.0.
+6. **Analysis classes are scaffolded** — InputSourceTagger and ControlFlowAnalyzer still return defaults; need Ghidra runtime for real P-code analysis in v0.3.0.
 
 ## Gradle Notes
 

@@ -94,7 +94,7 @@ Output: regime distribution table (Regime 1/2/3a counts, confidence, rationale p
 
 ```powershell
 gradle test
-# 66 tests pass, no Ghidra runtime required
+# 79 tests pass, no Ghidra runtime required
 ```
 
 **Test classes:**
@@ -103,10 +103,11 @@ gradle test
 - `KnownConstantTablesTest` (17 tests) — CRC/AES/SHA table fingerprinting
 - `RegimeAssignerTest` (16 tests) — decision tree logic and priority rules
 - `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
+- `WeightedRegimePropagatorTest` (13 tests) — call-graph propagation heuristics, weight thresholds
 
-## Current Status
+## Current Status (v0.2.0)
 
-**Fully implemented and tested:**
+**Fully implemented and tested (79 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
 - ✅ Input source categorization (13 tests)
 - ✅ Known constant table identification — CRC32, AES, SHA (17 tests)
@@ -115,20 +116,20 @@ gradle test
 - ✅ ControlFlowAnalyzer — detects loop bounds, indirect control flow, volatile accesses
 - ✅ ComplexityAnalyzer — cyclomatic complexity, table scanning, P-code op count
 - ✅ FunctionRegimeAnalyzer — 4-step pipeline orchestrator, all functions, progress tracking
+- ✅ WeightedRegimePropagator — call-graph propagation with heuristic edge weights (13 tests)
+- ✅ RegimeAnalyzerPlugin — Ghidra UI menu integration (file chooser bug fixed)
+- ✅ RegimeAnalysisTask — background task launcher
+- ✅ RegimeListingColorizer — classification result caching (MarkerService integration in v0.3.0)
+- ✅ RegimeTableColumnProvider — regime column for Function Table
+- ✅ RegimeReportGenerator — markdown classification report output
 - ✅ Headless script — `ghidra_scripts/AttestationRegimeHeadless.java`
-- ✅ Plugin ZIP installable in Ghidra 12 with analysis classes compiled
+- ✅ Plugin ZIP installable in Ghidra 12, all classes compiled
 
-**Scaffolded (not yet implemented):**
-- ⚠️ WeightedRegimePropagator — call-graph regime propagation (Step 5)
-- ⚠️ RegimeAnalyzerPlugin / RegimeAnalysisTask — Ghidra UI menu integration
-- ⚠️ RegimeListingColorizer — color-coded Listing view visualization
-- ⚠️ RegimeReportGenerator — markdown/HTML report output
-
-**What this means:**
-Install the plugin ZIP in Ghidra Extensions and run "Classify All Functions"
-(Tools > Attestation Regime). The classification pipeline executes and writes
-per-function regime assignments. Visualization and report generation require
-the scaffolded classes to be completed first.
+**Deferred to v0.3.0:**
+- P-code Varnode slicing for precise argument/return analysis (current: heuristics)
+- MarkerService integration for Listing view margin markers
+- FunctionGraph node coloring
+- Project-persistence for memory maps
 
 ## Sample Memory Maps
 
