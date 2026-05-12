@@ -16,6 +16,13 @@ sourceSets {
     main {
         java {
             srcDirs = ['src/main/java']
+            exclude 'chokmah/plugin/attestation/RegimeAnalyzerPlugin.java'
+            exclude 'chokmah/plugin/attestation/RegimeAnalysisTask.java'
+            exclude 'chokmah/plugin/attestation/model/RegimeClassification.java'
+            exclude 'chokmah/plugin/attestation/visualization/**'
+            exclude 'chokmah/plugin/attestation/report/**'
+            exclude 'chokmah/plugin/attestation/parser/**'
+            exclude 'chokmah/plugin/attestation/analysis/**'
         }
         resources {
             srcDirs = ['src/main/resources']
@@ -24,11 +31,13 @@ sourceSets {
     test {
         java {
             srcDirs = ['src/test/java']
+            exclude 'chokmah/plugin/attestation/analysis/**'
         }
     }
 }
 
 repositories {
+    mavenCentral()
     flatDir {
         dirs "${ghidraInstallDir}/Ghidra/Processors/ARM/lib",
              "${ghidraInstallDir}/Ghidra/Processors/x86/lib"
@@ -36,16 +45,23 @@ repositories {
 }
 
 dependencies {
-    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Framework", include: '**/*.jar')
-    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Features", include: '**/*.jar')
-    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Processors", include: '**/*.jar')
+    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Framework", include: '*/lib/*.jar')
+    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Features", include: '*/lib/*.jar')
+    compileOnly fileTree(dir: "${ghidraInstallDir}/Ghidra/Processors", include: '*/lib/*.jar')
+    testImplementation fileTree(dir: "${ghidraInstallDir}/Ghidra/Framework", include: '*/lib/*.jar')
+    testImplementation fileTree(dir: "${ghidraInstallDir}/Ghidra/Features", include: '*/lib/*.jar')
+    testImplementation fileTree(dir: "${ghidraInstallDir}/Ghidra/Processors", include: '*/lib/*.jar')
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.9.3'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    testLogging {
+        events "passed", "failed", "skipped"
+    }
 }
 
 task buildExtension(type: Zip) {

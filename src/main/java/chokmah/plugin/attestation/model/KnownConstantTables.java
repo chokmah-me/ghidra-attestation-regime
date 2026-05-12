@@ -111,7 +111,7 @@ public class KnownConstantTables {
         int tableSize = tableData.length;
 
         for (TableMatch candidate : KNOWN_TABLES) {
-            if (tableSize == candidate.expectedSizeBytes) {
+            if (tableSize == candidate.expectedSizeBytes && entrySize == candidate.expectedPrefix.length) {
                 boolean prefixMatch = true;
                 byte[] prefix = candidate.expectedPrefix;
                 for (int i = 0; i < prefix.length && i < tableData.length; i++) {
