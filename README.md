@@ -29,25 +29,32 @@ Key: Regime 3 checks come BEFORE Regime 2. Adversarial input dominates.
 
 ### Prerequisites
 
-- Ghidra 11.x
-- JDK 17+
-- Gradle 8+
+- **Ghidra 12.x** (tested with 12.0.4)
+- **JDK 21+** (tested with jdk-21.0.11)
+- **Gradle 8+**
+- **Windows 11** with PowerShell 7+
 
 ### Build
 
-```bash
-export GHIDRA_INSTALL_DIR=/path/to/ghidra
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21.0.11"
+$env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
+Output: `dist/AttestationRegimeClassifier-0.1.0.zip`
+
 ### Install
 
-```bash
-# Via Ghidra UI:
-File > Install Extensions > Add > dist/AttestationRegimeClassifier-0.1.0.zip
+**Via Ghidra UI:**
+1. File > Install Extensions > Add
+2. Select `dist/AttestationRegimeClassifier-0.1.0.zip`
+3. Restart Ghidra
 
-# Or copy to Ghidra extensions directory:
-cp dist/AttestationRegimeClassifier-0.1.0.zip $GHIDRA_INSTALL_DIR/Ghidra/Extensions/
+**Manual (PowerShell):**
+```powershell
+Copy-Item dist/AttestationRegimeClassifier-0.1.0.zip `
+  $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
 ### Usage
@@ -61,6 +68,40 @@ cp dist/AttestationRegimeClassifier-0.1.0.zip $GHIDRA_INSTALL_DIR/Ghidra/Extensi
 4. Tools > Attestation Regime > Classify All Functions
 5. Review color-coded Listing and Function Graph
 6. Tools > Attestation Regime > Generate Report...
+
+## Tests
+
+```powershell
+gradle test
+# 66 tests pass, no Ghidra runtime required
+```
+
+**Test classes:**
+- `AttestationRegimeTest` (13 tests) — regime enum properties, color coding, dominance
+- `InputSourceTest` (13 tests) — source type classification and regime inheritance
+- `KnownConstantTablesTest` (17 tests) — CRC/AES/SHA table fingerprinting
+- `RegimeAssignerTest` (16 tests) — decision tree logic and priority rules
+- `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
+
+## Current Status
+
+**Fully implemented and tested:**
+- ✅ Regime model and decision tree logic
+- ✅ Input source categorization
+- ✅ Known constant table identification (CRC32, AES, SHA)
+- ✅ JSON memory map parser (STM32F407 fixture included)
+- ✅ Pure-Java classification pipeline (no Ghidra runtime required)
+
+**Scaffolded (requires Ghidra runtime, excluded from build):**
+- ⚠️ InputSourceTagger — traces data flows to ultimate source
+- ⚠️ ControlFlowAnalyzer — detects loop bounds, indirect control flow
+- ⚠️ WeightedRegimePropagator — call-graph regime propagation
+- ⚠️ RegimeAnalyzerPlugin — Ghidra UI integration
+- ⚠️ RegimeListingColorizer — visualization (color-coded Listing view)
+- ⚠️ RegimeReportGenerator — markdown/HTML report generation
+
+**What this means:**
+The plugin ZIP builds and is installable, but end-to-end functionality in Ghidra (the UI workflow above) requires completing the analysis classes. The core intellectual contribution — the regime decision tree and memory map interpretation — is production-grade and fully validated.
 
 ## Sample Memory Maps
 
@@ -123,11 +164,9 @@ Venue: USENIX Security, CCS, WOOT, or S4x.
 
 ## References
 
-- #24 Bilar (2026). Three Regimes of Capability Attestation. Zenodo 20114610.
-- #2 Bilar (2026). The Computability Filter. Zenodo 19818321.
-- #23 Bilar (2026). Shibboleth Lattice Simulation. Zenodo 20090834.
-- #5 Bilar (2026). Volt Typhoon as nth-Order Bleeding. Zenodo 19739954.
-- #14 Golden Dome AOM paper.
-- #16 Anduril LatticeOS AOM paper.
+- Bilar (2026). Three Regimes of Capability Attestation. Zenodo 20114610.
+- Bilar (2026). The Computability Filter. Zenodo 19818321.
+- Bilar (2026). Shibboleth Lattice Simulation. Zenodo 20090834.
+- Bilar (2026). Volt Typhoon as nth-Order Bleeding. Zenodo 19739954.
 
 Daniyel Yaacov Bilar, Chokmah LLC, Vermont.
