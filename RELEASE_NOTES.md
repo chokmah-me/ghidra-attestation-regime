@@ -1,8 +1,8 @@
 # Release Notes
 
-## v0.4.1-dev — 2026-05-12
+## v0.4.1 — 2026-05-12
 
-**Status: In Development** — Firmware test infrastructure and headless analysis pipeline.
+**Status: Stable** — Firmware test infrastructure and headless analysis pipeline.
 
 ### What's New
 

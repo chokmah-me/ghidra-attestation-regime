@@ -1,7 +1,7 @@
 # Ghidra Attestation Regime Classifier
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![v0.4.0](https://img.shields.io/badge/version-0.4.0-blue.svg)](#)
+[![v0.4.1](https://img.shields.io/badge/version-0.4.1-blue.svg)](#)
 
 Computability-bounded firmware triage. Classifies every function in an
 embedded firmware image into one of three attestation regimes derived from
