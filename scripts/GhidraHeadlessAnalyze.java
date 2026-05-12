@@ -12,6 +12,7 @@
 
 import com.google.gson.*;
 import ghidra.app.decompiler.*;
+import ghidra.app.script.GhidraScript;
 import ghidra.program.model.listing.*;
 import ghidra.util.task.TaskMonitor;
 
@@ -82,9 +83,7 @@ public class GhidraHeadlessAnalyze extends GhidraScript {
                 root.add("regimeCounts", counts);
 
                 Files.write(Paths.get(outputJsonPath),
-                        root.toString(Gson.class.getClassLoader() != null ?
-                            com.google.gson.JsonElement.class : null)
-                        .getBytes());
+                        root.toString().getBytes());
 
                 println("\nResults written to: " + outputJsonPath);
             }
@@ -104,7 +103,7 @@ public class GhidraHeadlessAnalyze extends GhidraScript {
         // Stub: classify based on simple heuristics
         // Real implementation would use InputSourceTagger, ControlFlowAnalyzer, etc.
 
-        int blockCount = func.getBody().getNumAddresses();
+        long blockCount = func.getBody().getNumAddresses();
         boolean hasCall = false;
 
         // Check for CALL instructions

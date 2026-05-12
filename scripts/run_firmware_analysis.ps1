@@ -74,12 +74,13 @@ foreach ($elf in $elfs) {
     # Run analyzeHeadless with GhidraScript
     $projectName = "regime_$baseName"
 
-    & cmd.exe /c `
-        "`"$analyzeHeadless`" `"$tempProj`" `"$projectName`" " + `
-        "-import `"$($elf.FullName)`" " + `
-        "-scriptPath scripts " + `
-        "-postScript GhidraHeadlessAnalyze.java `"$MemoryMapJson`" `"$outputJson`" " + `
-        "-deleteProject -noAnalysis 2>&1 | findstr /V `"INFO`""
+    $cmdLine = "`"$analyzeHeadless`" `"$tempProj`" `"$projectName`"" +
+        " -import `"$($elf.FullName)`"" +
+        " -scriptPath scripts" +
+        " -postScript GhidraHeadlessAnalyze.java `"$MemoryMapJson`" `"$outputJson`"" +
+        " -deleteProject -noAnalysis 2>&1 | findstr /V `"INFO`""
+
+    Invoke-Expression "cmd.exe /c $cmdLine"
 
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "  analyzeHeadless exited with code $LASTEXITCODE (may be OK)"
