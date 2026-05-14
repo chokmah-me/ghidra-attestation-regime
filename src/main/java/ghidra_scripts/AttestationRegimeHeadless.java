@@ -1,5 +1,6 @@
 package ghidra_scripts;
 
+import com.google.gson.JsonObject;
 import ghidra.app.script.GhidraScript;
 import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
@@ -11,6 +12,8 @@ import chokmah.plugin.attestation.model.*;
 import chokmah.plugin.attestation.parser.SvdMemoryMapParser;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -152,5 +155,28 @@ public class AttestationRegimeHeadless extends GhidraScript {
         println(String.format("Provenance check: %d", prov));
         println(String.format("Unclassified: %d", unclass));
         println(String.format("Total: %d", step4Results.size()));
+
+        // Write JSON output if path provided
+        if (args.length >= 2 && args[1] != null && !args[1].isEmpty()) {
+            String outputJsonPath = args[1];
+            try {
+                JsonObject root = new JsonObject();
+                root.addProperty("firmware", currentProgram.getName());
+                root.addProperty("totalFunctions", step4Results.size());
+
+                JsonObject counts = new JsonObject();
+                counts.addProperty("REGIME_1", r1);
+                counts.addProperty("REGIME_2", r2);
+                counts.addProperty("REGIME_3A", r3a);
+                counts.addProperty("PROVENANCE", prov);
+                counts.addProperty("UNCLASSIFIED", unclass);
+                root.add("regimeCounts", counts);
+
+                Files.write(Paths.get(outputJsonPath), root.toString().getBytes());
+                println("\nResults written to: " + outputJsonPath);
+            } catch (Exception e) {
+                println("Warning: Could not write JSON output to " + args[1] + ": " + e.getMessage());
+            }
+        }
     }
 }

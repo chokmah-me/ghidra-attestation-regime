@@ -100,37 +100,63 @@ public class GhidraHeadlessAnalyze extends GhidraScript {
     }
 
     private String classifyFunction(Function func) {
-        // Stub: classify based on simple heuristics
-        // Real implementation would use InputSourceTagger, ControlFlowAnalyzer, etc.
+        // Heuristic classification based on function complexity metrics
+        // Real implementation would use InputSourceTagger, ControlFlowAnalyzer, ComplexityAnalyzer
 
-        long blockCount = func.getBody().getNumAddresses();
+        // Count basic blocks and instructions for better size estimation
+        int blockCount = 0;
+        int instructionCount = 0;
         boolean hasCall = false;
+        boolean hasIndirectCall = false;
+        boolean hasLoop = false;
 
-        // Check for CALL instructions
         try {
+            // Count instructions
             InstructionIterator itr = currentProgram.getListing().getInstructions(func.getBody(), true);
             while (itr.hasNext()) {
-                if (itr.next().getMnemonicString().toLowerCase().contains("call")) {
+                instructionCount++;
+                String mnem = itr.next().getMnemonicString().toLowerCase();
+                if (mnem.contains("call")) {
                     hasCall = true;
-                    break;
+                    // Check for indirect calls (use, jalr, blx, etc.)
+                    if (!mnem.contains("bl") || mnem.startsWith("blx") || mnem.startsWith("bx")) {
+                        hasIndirectCall = true;
+                    }
+                }
+                // Detect loops (backward branches)
+                if (mnem.startsWith("b") && mnem.length() <= 3) {
+                    // Backward branch likely indicates a loop
+                    hasLoop = true;
                 }
             }
+
+            // Count basic blocks
+            blockCount = func.getBasicBlocks().size();
         } catch (Exception e) {
-            // Ignore
+            // Fallback on error
         }
 
-        // Heuristic classification
-        if (blockCount > 500) {
-            return "REGIME_3A"; // Complex = potentially adversarial
-        } else if (blockCount > 100) {
-            return "REGIME_2"; // Medium complexity = sensor/internal state
-        } else if (blockCount < 20) {
-            return "REGIME_1"; // Simple = deterministic
-        } else if (func.getName().toLowerCase().contains("crc") ||
-                   func.getName().toLowerCase().contains("hash")) {
-            return "PROVENANCE"; // Known table patterns
+        // Check for known table patterns in function name
+        boolean isTableFunction = func.getName().toLowerCase().contains("crc") ||
+                func.getName().toLowerCase().contains("hash") ||
+                func.getName().toLowerCase().contains("table") ||
+                func.getName().toLowerCase().contains("lookup");
+
+        // Heuristic classification based on realistic ARM embedded firmware metrics
+        if (hasIndirectCall) {
+            return "REGIME_3A"; // Indirect calls = adversarial input exposure
+        } else if (instructionCount > 200 || blockCount > 30) {
+            return "REGIME_3A"; // Large function = likely high complexity with multiple paths
+        } else if (isTableFunction) {
+            return "PROVENANCE"; // Known cryptographic or lookup table patterns
+        } else if (hasCall && hasLoop) {
+            return "REGIME_2"; // Loops with calls = likely sensor/state-based logic
+        } else if (hasCall || hasLoop) {
+            return "REGIME_2"; // Calls or loops = medium complexity
+        } else if (blockCount > 5) {
+            return "REGIME_2"; // Multiple blocks = branching/decision logic
         } else {
-            return "REGIME_2"; // Default to medium
+            return "REGIME_1"; // Linear, simple function = deterministic
         }
     }
 }
