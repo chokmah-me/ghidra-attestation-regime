@@ -7,8 +7,8 @@ authors:
     given-names: Daniyel Yaacov
     affiliation: "Chokmah LLC"
     email: chokmah-dyb@pm.me
-version: "0.4.2"
-date-released: "2026-05-12"
+version: "0.5.0"
+date-released: "2026-05-14"
 license: MIT
 repository-code: "https://github.com/chokmah/ghidra-attestation-regime"
 abstract: >

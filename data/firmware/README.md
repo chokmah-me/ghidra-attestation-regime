@@ -117,9 +117,10 @@ WeightedRegimePropagator (propagate through call graph)
 JSON output (regimeCounts, functionDetails)
 ```
 
-**Implemented in v0.4.0:**
+**Implemented in v0.4.0+:**
 - Pure-Java model: RegimeAssigner (decision tree), WeightedRegimePropagator (call-graph propagation)
 - Ghidra-dependent: InputSourceTagger (call-chain taint + computed address range analysis), ControlFlowAnalyzer (CBRANCH predicate tracing), ComplexityAnalyzer (P-code metrics)
+- v0.5.0: AttestationRegimeHeadless.java with Step 5 propagation and memory map support
 
 ## References
 
