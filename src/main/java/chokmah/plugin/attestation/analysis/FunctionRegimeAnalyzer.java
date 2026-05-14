@@ -18,7 +18,11 @@ import ghidra.app.decompiler.*;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.listing.*;
 import ghidra.program.model.pcode.HighFunction;
+import ghidra.program.model.util.ObjectPropertyMap;
+import ghidra.program.model.util.PropertyMapManager;
 import ghidra.util.task.TaskMonitor;
+import ghidra.util.exception.DuplicateNameException;
+import ghidra.util.Msg;
 
 import java.util.*;
 
@@ -150,7 +154,7 @@ public class FunctionRegimeAnalyzer {
 
     /**
      * Store classification in Ghidra's property manager for persistence
-     * across sessions. (TODO: v0.4.0 - requires RegimeClassification to implement Saveable)
+     * across sessions.
      */
     private void storeClassification(Function function, ClassificationResult result) {
         try {
@@ -164,17 +168,36 @@ public class FunctionRegimeAnalyzer {
                 saveable.addInputSource(src);
             }
 
-            // TODO: enable PropertyMapManager wiring for persistence in v0.4.0
-            // Currently blocked on RegimeClassification implementing Saveable interface
-            // program.withTransaction("Store regime classification", () -> {
-            //     var pmgr = program.getUsrPropertyManager();
-            //     var propMap = pmgr.getObjectPropertyMap(RegimeClassification.PROPERTY_NAME);
-            //     if (propMap == null) {
-            //         propMap = pmgr.createObjectPropertyMap(
-            //             RegimeClassification.PROPERTY_NAME, RegimeClassification.class);
-            //     }
-            //     propMap.add(function.getEntryPoint(), saveable);
-            // });
+            int txId = program.startTransaction("Store regime classification");
+            boolean ok = false;
+            try {
+                PropertyMapManager pmgr = program.getUsrPropertyManager();
+                @SuppressWarnings("unchecked")
+                ObjectPropertyMap<RegimeClassification> map =
+                    (ObjectPropertyMap<RegimeClassification>)
+                        pmgr.getObjectPropertyMap(RegimeClassification.PROPERTY_NAME);
+                if (map == null) {
+                    map = pmgr.createObjectPropertyMap(
+                        RegimeClassification.PROPERTY_NAME, RegimeClassification.class);
+                }
+                map.add(function.getEntryPoint(), saveable);
+                ok = true;
+            } catch (DuplicateNameException e) {
+                // map already exists, retrieve and write
+                PropertyMapManager pmgr = program.getUsrPropertyManager();
+                @SuppressWarnings("unchecked")
+                ObjectPropertyMap<RegimeClassification> map =
+                    (ObjectPropertyMap<RegimeClassification>)
+                        pmgr.getObjectPropertyMap(RegimeClassification.PROPERTY_NAME);
+                if (map != null) {
+                    map.add(function.getEntryPoint(), saveable);
+                    ok = true;
+                }
+            } catch (Exception e) {
+                Msg.error(this, "Failed to persist regime for " + function.getName(), e);
+            } finally {
+                program.endTransaction(txId, ok);
+            }
         } catch (Exception e) {
             // Property storage failed; classification exists in memory only
         }

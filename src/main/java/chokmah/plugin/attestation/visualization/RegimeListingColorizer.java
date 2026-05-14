@@ -55,6 +55,12 @@ public class RegimeListingColorizer {
         markerSets.clear();
     }
 
+    public void clearClassifications() {
+        currentResults.clear();
+        // MarkerSets are automatically cleaned up when references are cleared
+        markerSets.clear();
+    }
+
     public void updateClassifications(Map<Address, ClassificationResult> results, Program program) {
         this.currentResults = new HashMap<>(results);
 

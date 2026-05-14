@@ -1,7 +1,7 @@
 # Ghidra Attestation Regime Classifier
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![v0.5.0](https://img.shields.io/badge/version-0.5.0-blue.svg)](#)
+[![v0.6.0](https://img.shields.io/badge/version-0.6.0-blue.svg)](#)
 
 Computability-bounded firmware triage. Classifies every function in an
 embedded firmware image into one of three attestation regimes derived from
@@ -45,18 +45,18 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.5.0.zip`
+Output: `dist/AttestationRegimeClassifier-0.6.0.zip`
 
 ### Install
 
 **Via Ghidra UI:**
 1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.5.0.zip`
+2. Select `dist/AttestationRegimeClassifier-0.6.0.zip`
 3. Restart Ghidra
 
 **Manual (PowerShell):**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.5.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.6.0.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -80,7 +80,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.5.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.6.0.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless
@@ -108,7 +108,7 @@ gradle test
 - `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
 - `WeightedRegimePropagatorTest` (12 tests) — call-graph propagation heuristics, weight thresholds
 
-## Current Status (v0.5.0)
+## Current Status (v0.6.0)
 
 **Fully implemented and tested (78 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
@@ -141,8 +141,12 @@ gradle test
 - ✅ FunctionGraph vertex coloring — regime colors (green/yellow/red/orange/gray) applied to graph vertices via FunctionGraphPlugin
 - ✅ AttestationRegimeHeadless.java — Step 5 weighted propagation, memory map argument, JSON output support
 
-**Deferred:**
-- PropertyMapManager persistence (requires RegimeClassification to implement Saveable interface)
+**v0.6.0 additions:**
+- ✅ PropertyMap persistence: regime classifications survive program close and Ghidra restart
+- ✅ RegimeClassification implements Saveable + ExtensionPoint (schema version 1)
+- ✅ Serializes regime, confidence, provenance score, and rationale per function
+- ✅ programOpened / programClosed lifecycle hooks in RegimeAnalyzerPlugin
+- ✅ Classifications auto-load from PropertyMap on program open; visualizations updated automatically
 
 ## Sample Memory Maps
 
@@ -212,7 +216,7 @@ To cite the AttestationRegimeClassifier plugin:
   title   = {AttestationRegimeClassifier -- Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification},
   author  = {Bilar, Daniyel Yaacov},
   year    = {2026},
-  version = {0.5.0},
+  version = {0.6.0},
   url     = {https://github.com/chokmah/ghidra-attestation-regime}
 }
 ```

@@ -40,7 +40,10 @@ import ghidra.app.services.*;
 import ghidra.framework.plugintool.*;
 import ghidra.framework.plugintool.util.PluginStatus;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.address.AddressIterator;
 import ghidra.program.model.listing.*;
+import ghidra.program.model.util.ObjectPropertyMap;
+import ghidra.program.model.util.PropertyMapManager;
 import ghidra.program.util.ProgramLocation;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
@@ -74,6 +77,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
 
     private List<MemoryRegion> memoryMap = new ArrayList<>();
     private Map<Address, ClassificationResult> results = new HashMap<>();
+    private String lastLoadedSvdPath = "";
 
     private RegimeTableColumnProvider tableColumnProvider;
     private RegimeListingColorizer listingColorizer;
@@ -96,6 +100,18 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
         loadMemoryMapFromProject();
     }
 
+    @Override
+    protected void programOpened(Program program) {
+        loadClassificationsFromPropertyMap(program);
+    }
+
+    @Override
+    protected void programClosed(Program program) {
+        results.clear();
+        if (listingColorizer != null) {
+            listingColorizer.clearClassifications();
+        }
+    }
 
     @Override
     public void dispose() {
@@ -246,6 +262,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
             try {
                 SvdMemoryMapParser parser = new SvdMemoryMapParser(currentProgram);
                 memoryMap = parser.parseSvd(file);
+                lastLoadedSvdPath = file.getAbsolutePath();
                 Msg.showInfo(this, tool.getToolFrame(), "SVD Loaded",
                         "Loaded " + memoryMap.size() + " memory regions from " + file.getName());
             } catch (Exception e) {
@@ -266,6 +283,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
             try {
                 SvdMemoryMapParser parser = new SvdMemoryMapParser(currentProgram);
                 memoryMap = parser.parseJson(file);
+                lastLoadedSvdPath = file.getAbsolutePath();
                 Msg.showInfo(this, tool.getToolFrame(), "JSON Loaded",
                         "Loaded " + memoryMap.size() + " memory regions from " + file.getName());
             } catch (Exception e) {
@@ -311,6 +329,37 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
 
     private void loadMemoryMapFromProject() {
         // TODO: load from project metadata if previously saved
+    }
+
+    private void loadClassificationsFromPropertyMap(Program program) {
+        if (program == null) return;
+        PropertyMapManager pmgr = program.getUsrPropertyManager();
+        @SuppressWarnings("unchecked")
+        ObjectPropertyMap<RegimeClassification> map =
+            (ObjectPropertyMap<RegimeClassification>)
+                pmgr.getObjectPropertyMap(RegimeClassification.PROPERTY_NAME);
+        if (map == null) return;
+
+        results.clear();
+        AddressIterator it = map.getPropertyIterator();
+        while (it.hasNext()) {
+            Address addr = it.next();
+            RegimeClassification rc = map.get(addr);
+            if (rc == null) continue;
+            ClassificationResult cr = ClassificationResult.builder()
+                .regime(rc.getRegime())
+                .confidence(rc.getConfidence())
+                .rationale(rc.getClassificationRationale())
+                .provenanceCheckScore(rc.getProvenanceCheckScore())
+                .build();
+            results.put(addr, cr);
+        }
+
+        if (!results.isEmpty()) {
+            listingColorizer.updateClassifications(results, program);
+            tableColumnProvider.updateClassifications(results);
+            Msg.info(this, "Loaded " + results.size() + " persisted regime classifications");
+        }
     }
 
     public ClassificationResult getClassification(Address functionEntry) {

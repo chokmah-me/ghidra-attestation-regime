@@ -86,7 +86,7 @@ The plugin runs a **5-step classification pipeline** on every function:
 
 Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.5.0):**
+**Current Build Status (v0.6.0):**
 - ✅ Pure-Java model & decision tree: 78 tests passing
 - ✅ JSON memory map parser: reads STM32F407 fixture
 - ✅ Call-graph propagation with improved regime-based classification
@@ -97,7 +97,7 @@ Results are cached for Listing view with MarkerService integration (green margin
 - ✅ InputSourceTagger: computed address range analysis (Varnode def-use chain constant folding, depth 4)
 - ✅ FunctionGraph coloring: vertex background colors per regime (via FunctionGraphPlugin)
 - ✅ Headless analysis script: Step 5 propagation + memory map argument support
-- ⚠️ PropertyMapManager persistence: deferred to v0.6.0 (requires Ghidra UserData/Saveable API research)
+- ✅ PropertyMapManager persistence: RegimeClassification implements Saveable; classifications survive Ghidra restart
 
 ## Code Structure
 

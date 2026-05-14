@@ -4,6 +4,10 @@
 
 package chokmah.plugin.attestation.model;
 
+import ghidra.util.Saveable;
+import ghidra.util.ObjectStorage;
+import ghidra.util.classfinder.ExtensionPoint;
+import ghidra.util.classfinder.ClassTranslator;
 import java.util.*;
 
 /**
@@ -19,7 +23,14 @@ import java.util.*;
  *   provenance_check_score: float  // only for flagged functions
  * }
  */
-public class RegimeClassification {
+public class RegimeClassification implements Saveable, ExtensionPoint {
+
+    static {
+        ClassTranslator.put(
+            "chokmah.plugin.attestation.model.RegimeClassification",
+            RegimeClassification.class.getName()
+        );
+    }
 
     public static final String PROPERTY_NAME = "AttestationRegime";
 
@@ -120,6 +131,47 @@ public class RegimeClassification {
      */
     public boolean isPropagated() {
         return !propagationPath.isEmpty();
+    }
+
+    @Override
+    public Class<?>[] getObjectStorageFields() {
+        return new Class<?>[] { String.class, String.class, Double.class, String.class };
+    }
+
+    @Override
+    public void save(ObjectStorage s) {
+        s.putString(regime != null ? regime.name() : AttestationRegime.UNCLASSIFIED.name());
+        s.putString(confidence != null ? confidence.name() : Confidence.LOW.name());
+        s.putDouble(provenanceCheckScore);
+        s.putString(classificationRationale != null ? classificationRationale : "");
+    }
+
+    @Override
+    public void restore(ObjectStorage s) {
+        this.regime = AttestationRegime.valueOf(s.getString());
+        this.confidence = Confidence.valueOf(s.getString());
+        this.provenanceCheckScore = s.getDouble();
+        this.classificationRationale = s.getString();
+    }
+
+    @Override
+    public int getSchemaVersion() {
+        return 1;
+    }
+
+    @Override
+    public boolean isUpgradeable(int oldSchemaVersion) {
+        return false;
+    }
+
+    @Override
+    public boolean upgrade(ObjectStorage oldObjStorage, int oldSchemaVersion, ObjectStorage currentObjStorage) {
+        return false;
+    }
+
+    @Override
+    public boolean isPrivate() {
+        return false;
     }
 
 }
