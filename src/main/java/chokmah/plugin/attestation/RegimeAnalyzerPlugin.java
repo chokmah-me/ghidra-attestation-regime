@@ -210,6 +210,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
 
         // Update visualizations
         listingColorizer.updateClassifications(results, currentProgram);
+        listingColorizer.colorizeFunctionGraph(currentProgram, results);
         tableColumnProvider.updateClassifications(results);
 
         // Show summary

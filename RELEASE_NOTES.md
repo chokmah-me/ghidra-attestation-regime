@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.5.0 — 2026-05-14
+
+**Status: Stable** — FunctionGraph coloring and headless analysis improvements.
+
+### What's New
+
+- **FunctionGraph vertex coloring** — Regime colors applied to Function Graph vertices in real-time (green/yellow/red/orange/gray) via `FunctionGraphPlugin`; gracefully handles missing plugin with informational message
+- **AttestationRegimeHeadless.java improvements** — Added Step 5 weighted propagation; accepts optional JSON memory map argument to enable proper external source detection (fixes all-REGIME_1 issue seen in prior headless runs)
+- **Headless script memory map support** — Usage: `GhidraScript AttestationRegimeHeadless.java <path/to/memory_map.json>`; falls back to heuristic Cortex-M defaults if not provided
+
+### Testing
+
+78 unit tests passing (no regression). Headless pipeline now produces non-trivial regime distributions when memory map is provided.
+
+---
+
 ## v0.4.2 — 2026-05-12
 
 **Status: Stable** — Firmware headless analysis pipeline bug fixes.

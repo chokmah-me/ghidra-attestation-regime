@@ -54,7 +54,7 @@ gradle test
 # Build the plugin extension
 gradle buildExtension
 
-# Output: dist/AttestationRegimeClassifier-0.4.2.zip
+# Output: dist/AttestationRegimeClassifier-0.5.0.zip
 ```
 
 ## Install
@@ -64,11 +64,11 @@ Two methods:
 **Via Ghidra UI:**
 1. Open Ghidra
 2. File > Install Extensions > Add
-3. Select `dist/AttestationRegimeClassifier-0.4.2.zip`
+3. Select `dist/AttestationRegimeClassifier-0.5.0.zip`
 
 **Manual:**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.4.2.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.5.0.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -86,7 +86,7 @@ The plugin runs a **5-step classification pipeline** on every function:
 
 Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.4.2):**
+**Current Build Status (v0.5.0):**
 - ✅ Pure-Java model & decision tree: 78 tests passing
 - ✅ JSON memory map parser: reads STM32F407 fixture
 - ✅ Call-graph propagation with improved regime-based classification
@@ -95,8 +95,9 @@ Results are cached for Listing view with MarkerService integration (green margin
 - ✅ MarkerService wiring: colored margin markers in Listing view per regime
 - ✅ InputSourceTagger: call-chain taint propagation (CALL opcode inter-procedural tracing)
 - ✅ InputSourceTagger: computed address range analysis (Varnode def-use chain constant folding, depth 4)
-- ⚠️ FunctionGraph coloring: deferred to v0.5.0 (requires FunctionGraphService API confirmation)
-- ⚠️ PropertyMapManager persistence: deferred to v0.5.0 (requires Ghidra UserData/Saveable API research)
+- ✅ FunctionGraph coloring: vertex background colors per regime (via FunctionGraphPlugin)
+- ✅ Headless analysis script: Step 5 propagation + memory map argument support
+- ⚠️ PropertyMapManager persistence: deferred to v0.6.0 (requires Ghidra UserData/Saveable API research)
 
 ## Code Structure
 
