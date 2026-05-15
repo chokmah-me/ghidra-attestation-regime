@@ -133,7 +133,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
             }
         };
         classifyAction.setMenuBarData(new MenuData(
-                new String[]{"Attestation Regime", "Classify All Functions"},
+                new String[]{"Tools", "Attestation Regime", "Classify All Functions"},
                 null, "AttestationRegime"));
         classifyAction.setDescription("Run 5-step classification pipeline on all functions");
         classifyAction.setEnabled(true);
@@ -147,7 +147,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
             }
         };
         loadSvdAction.setMenuBarData(new MenuData(
-                new String[]{"Attestation Regime", "Load SVD File..."},
+                new String[]{"Tools", "Attestation Regime", "Load SVD File..."},
                 null, "AttestationRegime"));
         loadSvdAction.setDescription("Load ARM CMSIS-SVD peripheral description");
         loadSvdAction.setEnabled(true);
@@ -161,7 +161,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
             }
         };
         loadJsonAction.setMenuBarData(new MenuData(
-                new String[]{"Attestation Regime", "Load JSON Memory Map..."},
+                new String[]{"Tools", "Attestation Regime", "Load JSON Memory Map..."},
                 null, "AttestationRegime"));
         loadJsonAction.setDescription("Load manual memory map annotation");
         loadJsonAction.setEnabled(true);
@@ -175,7 +175,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
             }
         };
         generateReportAction.setMenuBarData(new MenuData(
-                new String[]{"Attestation Regime", "Generate Report..."},
+                new String[]{"Tools", "Attestation Regime", "Generate Report..."},
                 null, "AttestationRegime"));
         generateReportAction.setDescription("Generate Markdown classification report");
         generateReportAction.setEnabled(true);
@@ -189,7 +189,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
             }
         };
         clearAction.setMenuBarData(new MenuData(
-                new String[]{"Attestation Regime", "Clear Classifications"},
+                new String[]{"Tools", "Attestation Regime", "Clear Classifications"},
                 null, "AttestationRegime"));
         clearAction.setDescription("Remove all regime classifications");
         clearAction.setEnabled(true);

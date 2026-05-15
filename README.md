@@ -1,7 +1,7 @@
 # Ghidra Attestation Regime Classifier
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![v0.8.0](https://img.shields.io/badge/version-0.8.0-blue.svg)](#)
+[![v0.8.1](https://img.shields.io/badge/version-0.8.1-blue.svg)](#)
 
 Computability-bounded firmware triage. Classifies every function in an
 embedded firmware image into one of three attestation regimes derived from
@@ -45,20 +45,28 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.8.0.zip`
+Output: `dist/AttestationRegimeClassifier-0.8.1.zip`
 
 ### Install
 
-**Via Ghidra UI:**
-1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.8.0.zip`
-3. Restart Ghidra
-
-**Manual (PowerShell):**
+**Via install script (recommended):**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.8.0.zip `
-  $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
+.\scripts\Install-AttestationRegimePlugin.ps1 `
+  -GhidraInstallDir "C:\Tools\ghidra_12.0.4_PUBLIC" `
+  -PluginZip "dist\AttestationRegimeClassifier-0.8.1.zip"
 ```
+
+The script stops Ghidra, removes any prior installation, extracts the ZIP, and verifies `extension.properties` is present.
+
+**After the script, two manual steps in Ghidra are required:**
+1. Open Ghidra > **File > Install Extensions** > check "Attestation Regime Classifier" > OK > restart Ghidra
+2. Open a binary in CodeBrowser > **File > Configure** > find RegimeAnalyzerPlugin > enable it
+
+**Via Ghidra UI only:**
+1. File > Install Extensions > Add
+2. Select `dist/AttestationRegimeClassifier-0.8.1.zip`
+3. Check "Attestation Regime Classifier" in the list > OK > restart Ghidra
+4. Open a binary in CodeBrowser > File > Configure > enable RegimeAnalyzerPlugin
 
 ### Usage
 
@@ -80,7 +88,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.8.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.8.1.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless
@@ -110,7 +118,7 @@ gradle test
 - `MemoryRegionTest` (10 tests) — toInputSourceType() mapping for all region/peripheral types including FIELDBUS
 - `IntegrationE2eTest` (6 tests) — end-to-end pipeline with STM32F407 peripherals
 
-## Current Status (v0.8.0)
+## Current Status (v0.8.1)
 
 **Fully implemented and tested (107 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
@@ -161,6 +169,15 @@ gradle test
 - ✅ MemoryRegionTest: 10 tests covering toInputSourceType() for all peripheral classes
 - ✅ siemens_s7_io_memory_map.json: S7-300/400 PLC I/O memory map with Profibus as FIELDBUS
 - ✅ Total test suite: 107 tests (pure Java, no Ghidra runtime required)
+
+**v0.8.1 additions (build system / Ghidra 12.x compatibility):**
+- ✅ `extension.properties` — renamed from `plugin.properties`; Ghidra 12.x requires this exact filename
+- ✅ `Module.manifest` — added required module marker file; without it Ghidra's module loader skips the extension
+- ✅ Jackson deps bundled in `lib/` — `copyDependencies` Gradle task added; `jackson-databind`, `jackson-core`, `jackson-annotations` now shipped in ZIP
+- ✅ JAR placed in `lib/` subdirectory — Ghidra ClassSearcher scans `lib/`, not the extension root
+- ✅ Menu path corrected — all actions moved to `Tools > Attestation Regime` (was standalone top-level menu)
+- ✅ Install script — `scripts/Install-AttestationRegimePlugin.ps1` automates stop/remove/extract/verify
+- ✅ First confirmed working end-to-end Ghidra 12.0.4 UI install: 170 functions classified on `zephyr-hello_world_stm32f4.elf`
 
 ## Sample Memory Maps
 
@@ -233,7 +250,7 @@ To cite the AttestationRegimeClassifier plugin:
   title   = {AttestationRegimeClassifier -- Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification},
   author  = {Bilar, Daniyel Yaacov},
   year    = {2026},
-  version = {0.8.0},
+  version = {0.8.1},
   url     = {https://github.com/chokmah/ghidra-attestation-regime}
 }
 ```

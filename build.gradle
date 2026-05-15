@@ -6,7 +6,7 @@ plugins {
     id 'java'
 }
 
-version = '0.8.0'
+version = '0.8.1'
 
 def ghidraInstallDir = System.getenv('GHIDRA_INSTALL_DIR') ?: '/opt/ghidra'
 
@@ -61,13 +61,37 @@ tasks.named('test') {
     }
 }
 
+tasks.named('jar') {
+    manifest {
+        attributes(
+            'Bundle-Name': 'Attestation Regime Classifier',
+            'Bundle-SymbolicName': 'chokmah.plugin.attestation',
+            'Bundle-Version': version,
+            'Bundle-Vendor': 'Chokmah LLC',
+            'Export-Package': 'chokmah.plugin.attestation;version=' + version
+        )
+    }
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into 'lib'
+    exclude { elem ->
+        def path = elem.file.canonicalPath
+        def ghidraPath = new File(ghidraInstallDir).canonicalPath
+        def libPath = new File('lib').canonicalPath
+        path.startsWith(ghidraPath) || path.startsWith(libPath)
+    }
+}
+
 task buildExtension(type: Zip) {
     archiveFileName = "AttestationRegimeClassifier-${version}.zip"
     destinationDirectory = file('dist')
 
     into('AttestationRegimeClassifier') {
         from('src/main/resources') {
-            include '**/*'
+            include 'extension.properties'
+            include 'Module.manifest'
         }
         from('data') {
             include '**/*'
@@ -77,9 +101,15 @@ task buildExtension(type: Zip) {
         }
         from('build/libs') {
             include '*.jar'
+            into 'lib'
+        }
+        from('lib') {
+            include '*.jar'
+            into 'lib'
         }
     }
 }
 
 buildExtension.dependsOn jar
+buildExtension.dependsOn copyDependencies
 build.dependsOn buildExtension

@@ -54,25 +54,20 @@ gradle test
 # Build the plugin extension
 gradle buildExtension
 
-# Output: dist/AttestationRegimeClassifier-0.5.0.zip
+# Output: dist/AttestationRegimeClassifier-0.8.1.zip
 ```
 
 ## Install
 
-Two methods:
-
-**Via Ghidra UI:**
-1. Open Ghidra
-2. File > Install Extensions > Add
-3. Select `dist/AttestationRegimeClassifier-0.5.0.zip`
-
-**Manual:**
+**Via install script:**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.5.0.zip `
-  $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
+.\scripts\Install-AttestationRegimePlugin.ps1 `
+  -GhidraInstallDir "C:\Tools\ghidra_12.0.4_PUBLIC" `
+  -PluginZip "dist\AttestationRegimeClassifier-0.8.1.zip"
 ```
 
-Then restart Ghidra.
+Then in Ghidra: File > Install Extensions > check "Attestation Regime Classifier" > OK > restart.
+Then in CodeBrowser: File > Configure > enable RegimeAnalyzerPlugin.
 
 ## Architecture
 
@@ -86,7 +81,7 @@ The plugin runs a **5-step classification pipeline** on every function:
 
 Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.8.0):**
+**Current Build Status (v0.8.1):**
 - ✅ Pure-Java model & decision tree: 107 tests passing (added MemoryRegionTest: 10 tests, FIELDBUS SourceType)
 - ✅ JSON memory map parser: reads STM32F407 fixture and S7 I/O memory map
 - ✅ Call-graph propagation with improved regime-based classification
@@ -99,6 +94,10 @@ Results are cached for Listing view with MarkerService integration (green margin
 - ✅ Headless analysis script: Step 5 propagation + memory map argument support
 - ✅ PropertyMapManager persistence: RegimeClassification implements Saveable; classifications survive Ghidra restart
 - ✅ FIELDBUS SourceType: industrial field bus support (Profibus, EtherNet/IP, Modbus) for PLC analysis
+- ✅ Ghidra 12.x extension loading: extension.properties, Module.manifest, jackson deps in lib/
+- ✅ Tools > Attestation Regime menu in CodeBrowser (requires File > Configure to enable)
+- ✅ Install script: scripts/Install-AttestationRegimePlugin.ps1
+- ✅ Confirmed end-to-end on zephyr-hello_world_stm32f4.elf: 170 functions (17 R1, 143 R3a, 10 Provenance)
 
 ## Code Structure
 

@@ -1,5 +1,31 @@
 # Release Notes
 
+## v0.8.1 — 2026-05-15
+
+**Status: Stable** — Build system fix; first working Ghidra 12.0.4 UI install.
+
+### What's New
+
+- **extension.properties** — Renamed from `plugin.properties`. Ghidra 12.x requires this exact filename to discover extensions. The old name caused silent skip at startup.
+- **Module.manifest** — Added required module marker file (empty). Without it Ghidra's module loader does not wire the extension into the classpath.
+- **Jackson JARs in lib/** — `copyDependencies` task added to `build.gradle`. Runtime deps (`jackson-databind`, `jackson-core`, `jackson-annotations`) are now bundled in `lib/` alongside the plugin JAR. Missing deps caused silent class-load failure.
+- **JAR in lib/ subdirectory** — Ghidra's ClassSearcher scans `lib/`, not the extension root. The `into 'lib'` directive was added to the `buildExtension` ZIP task.
+- **Menu path** — All actions moved from standalone `"Attestation Regime"` menu to `"Tools > Attestation Regime"` submenu, matching Ghidra convention and the documented usage workflow.
+- **Install script** — `scripts/Install-AttestationRegimePlugin.ps1`: stops Ghidra, removes old installation, extracts new ZIP, verifies `extension.properties` is present.
+- **Version string** — Report footer corrected from `v0.1.0` to `v0.8.1`.
+
+### Install Notes (Ghidra 12.x)
+
+After running the install script, two manual steps are required in Ghidra:
+1. **File > Install Extensions** -> check "Attestation Regime Classifier" -> OK -> restart Ghidra
+2. Open a binary in CodeBrowser -> **File > Configure** -> enable RegimeAnalyzerPlugin
+
+### Testing
+
+107 unit tests passing (no regression). Plugin confirmed working end-to-end on `zephyr-hello_world_stm32f4.elf` with STM32F407 memory map: 170 functions classified (17 Regime 1, 143 Regime 3a, 10 Provenance).
+
+---
+
 ## v0.5.0 — 2026-05-14
 
 **Status: Stable** — FunctionGraph coloring and headless analysis improvements.
