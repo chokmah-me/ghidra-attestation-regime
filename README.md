@@ -97,7 +97,7 @@ Output: regime distribution table (Regime 1/2/3a counts, confidence, rationale p
 
 ```powershell
 gradle test
-# 78 tests pass, no Ghidra runtime required
+# 97 tests pass, no Ghidra runtime required
 ```
 
 **Test classes:**
@@ -105,12 +105,13 @@ gradle test
 - `InputSourceTest` (13 tests) — source type classification and regime inheritance
 - `KnownConstantTablesTest` (17 tests) — CRC/AES/SHA table fingerprinting
 - `RegimeAssignerTest` (16 tests) — decision tree logic and priority rules
-- `IntegrationE2eTest` (7 tests) — end-to-end pipeline with STM32F407 peripherals
 - `WeightedRegimePropagatorTest` (12 tests) — call-graph propagation heuristics, weight thresholds
+- `RegimeClassificationSaveableTest` (20 tests) — Saveable schema, field ordering, serialization contract
+- `IntegrationE2eTest` (6 tests) — end-to-end pipeline with STM32F407 peripherals
 
-## Current Status (v0.6.0)
+## Current Status (v0.7.0)
 
-**Fully implemented and tested (78 tests):**
+**Fully implemented and tested (97 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
 - ✅ Input source categorization (13 tests)
 - ✅ Known constant table identification — CRC32, AES, SHA (17 tests)
@@ -147,6 +148,12 @@ gradle test
 - ✅ Serializes regime, confidence, provenance score, and rationale per function
 - ✅ programOpened / programClosed lifecycle hooks in RegimeAnalyzerPlugin
 - ✅ Classifications auto-load from PropertyMap on program open; visualizations updated automatically
+
+**v0.7.0 additions:**
+- ✅ RegimeClassificationSaveableTest: 20 unit tests for Saveable implementation
+- ✅ Tests cover schema version, field ordering, serialization contract, all enum values
+- ✅ Tests validate confidence levels, provenanceCheckScore, and rationale persistence
+- ✅ Total test suite: 97 tests (pure Java, no Ghidra runtime required)
 
 ## Sample Memory Maps
 
