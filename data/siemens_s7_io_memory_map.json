@@ -1,0 +1,79 @@
+{
+  "device": "Siemens S7-315/317 PLC",
+  "description": "Example I/O memory map for Siemens S7-300 Series PLC (e.g., S7-315H or S7-317H). Maps logical I/O module addresses to peripheral classes. For analyzing S7 firmware in Ghidra, a processor module (s7-ghidra or equivalent) must first load the S7 object code. This map then annotates I/O addresses for regime classification. Profibus master modules are marked as FIELDBUS (Regime 3a). Example relevant to Stuxnet analysis: the S7-315 at Natanz read centrifuge speeds via Profibus and wrote drive commands. The Stuxnet payload patched the input/output functions to spoof sensor readings while modifying control signals.",
+  "note": "S7 I/O addresses are logical (per IEC 61131-1), not physical memory. The example assumes canonical address mapping: I/O bytes 0x0000-0xFFFF. For actual firmware analysis, use an SVD equivalent or vendor documentation for your specific S7 variant and installed modules.",
+  "regions": [
+    {
+      "name": "I/O Bytes (Local)",
+      "start": "0x0000",
+      "end": "0xFFFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "UNKNOWN_PERIPHERAL",
+      "volatile": true,
+      "note": "S7 local I/O address range. Includes digital I/O, analog inputs, relay modules. Default to UNKNOWN until mapped."
+    },
+    {
+      "name": "Profibus Master Module (DP/PA)",
+      "start": "0x1000",
+      "end": "0x1FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "FIELDBUS",
+      "volatile": true,
+      "note": "Siemens Profibus DP or Profibus PA master interface module. Interfaces with distributed I/O and sensors/actuators on the Profibus network. Reads/writes adversarial network data. Regime 3a."
+    },
+    {
+      "name": "AS-Interface Master Module",
+      "start": "0x2000",
+      "end": "0x2FFF",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "FIELDBUS",
+      "volatile": true,
+      "note": "AS-Interface (ASIC) master for distributed I/O. Also network-sourced, adversarial. Regime 3a."
+    },
+    {
+      "name": "Analog Input Module (AI 8x16-bit)",
+      "start": "0x200",
+      "end": "0x20F",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "ADC",
+      "volatile": true,
+      "note": "Example: 8-channel 16-bit ADC. Local analog sensor inputs (temperature, pressure, flow). Regime 2 if sensor-sourced only, but may be spoofed via network -> Regime 3a if Profibus network-accessible."
+    },
+    {
+      "name": "Digital Output Module (DO 16x24V)",
+      "start": "0x100",
+      "end": "0x10F",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "GPIO",
+      "volatile": true,
+      "note": "Digital outputs. Control relays, contactors, solenoids. In Stuxnet: drive speed commands to frequency converters via analog output module."
+    },
+    {
+      "name": "Analog Output Module (AO 4x16-bit)",
+      "start": "0x300",
+      "end": "0x30F",
+      "type": "MMIO_PERIPHERAL",
+      "peripheral_class": "GPIO",
+      "volatile": true,
+      "note": "Example: 4-channel 16-bit DAC. Control signals to analog devices. In the Natanz centrifuges: drive frequency converter speed setpoints via 4-20mA or 0-10V output."
+    },
+    {
+      "name": "Program Block (DRAM)",
+      "start": "0x10000",
+      "end": "0x7FFFF",
+      "type": "INTERNAL_SRAM",
+      "peripheral_class": "NONE",
+      "volatile": false,
+      "note": "S7 program RAM (work memory for ladder logic, data blocks). Local state only, not network-sourced. Regime 1 if only read from here, Regime 3a if written by FIELDBUS input functions."
+    },
+    {
+      "name": "Data Blocks (DB 890, DB 8062, etc.)",
+      "start": "0x80000",
+      "end": "0xFFFFF",
+      "type": "INTERNAL_SRAM",
+      "peripheral_class": "NONE",
+      "volatile": false,
+      "note": "Application data blocks. In legitimate S7: sensor values, control parameters. In Stuxnet: DB890 stored replayed centrifuge speed samples; DB8062/8063 stored modified setpoints. Tainted if written by FIELDBUS-reading functions (inherited Regime 3a)."
+    }
+  ]
+}

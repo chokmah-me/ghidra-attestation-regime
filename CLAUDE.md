@@ -86,9 +86,9 @@ The plugin runs a **5-step classification pipeline** on every function:
 
 Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.7.0):**
-- ✅ Pure-Java model & decision tree: 97 tests passing (added RegimeClassificationSaveableTest: 20 tests)
-- ✅ JSON memory map parser: reads STM32F407 fixture
+**Current Build Status (v0.8.0):**
+- ✅ Pure-Java model & decision tree: 107 tests passing (added MemoryRegionTest: 10 tests, FIELDBUS SourceType)
+- ✅ JSON memory map parser: reads STM32F407 fixture and S7 I/O memory map
 - ✅ Call-graph propagation with improved regime-based classification
 - ✅ ControlFlowAnalyzer: CBRANCH predicate tracing, hasFunctionPointerUsage detection
 - ✅ Plugin classes, UI menu integration, report generator: all compiled and included in ZIP
@@ -98,6 +98,7 @@ Results are cached for Listing view with MarkerService integration (green margin
 - ✅ FunctionGraph coloring: vertex background colors per regime (via FunctionGraphPlugin)
 - ✅ Headless analysis script: Step 5 propagation + memory map argument support
 - ✅ PropertyMapManager persistence: RegimeClassification implements Saveable; classifications survive Ghidra restart
+- ✅ FIELDBUS SourceType: industrial field bus support (Profibus, EtherNet/IP, Modbus) for PLC analysis
 
 ## Code Structure
 
@@ -197,13 +198,14 @@ gradle test --tests chokmah.plugin.attestation.IntegrationE2eTest
 start build/reports/tests/test/index.html
 ```
 
-**Test Coverage (7 classes, 97 tests):**
+**Test Coverage (9 classes, 107 tests):**
 - AttestationRegimeTest (13) — regime enum properties, color coding, dominance
-- InputSourceTest (13) — source type mapping, regime inheritance
+- InputSourceTest (14) — source type mapping, regime inheritance, FIELDBUS SourceType
 - KnownConstantTablesTest (17) — CRC/AES/SHA fingerprinting
 - RegimeAssignerTest (16) — decision tree logic, priority rules
 - WeightedRegimePropagatorTest (12) — call-graph propagation weight formulas, thresholds, heuristics
 - RegimeClassificationSaveableTest (20) — Saveable impl schema, field contract, serialization schema
+- MemoryRegionTest (10) — toInputSourceType() mapping, FIELDBUS peripheral classification
 - IntegrationE2eTest (6) — end-to-end pipeline with realistic STM32F407 data
 
 **What's tested:** Pure-Java model, parser, decision tree, propagator heuristics. **What's not tested:** The Ghidra-dependent analyzer classes (InputSourceTagger, ControlFlowAnalyzer, ComplexityAnalyzer) require live Ghidra runtime; full test coverage deferred.
@@ -239,6 +241,39 @@ See `data/firmware/README.md` for usage details.
 3. **Alias analysis** on stripped firmware is imprecise (over-approximation is safe for security).
 4. **No person-hour estimates** — complexity does not reliably predict verification effort.
 5. **InputSourceTagger range analysis and call-chain taint** are now in v0.4.0. Varnode def-use chain constant folding (depth 4) resolves computed addresses; CALL opcode handling propagates external sources to callers. ControlFlowAnalyzer CBRANCH predicate tracing is implemented (isExternallyDerived SSA walk).
+6. **Industrial field bus support (v0.8.0)** — `InputSource.SourceType.FIELDBUS` classifies reads from Profibus, EtherNet/IP, Modbus, and other ICS-specific buses as Regime 3a. Enables analysis of PLC firmware when a processor module (e.g., s7-ghidra) loads S7 object code. See `data/siemens_s7_io_memory_map.json` for S7 example.
+
+## PLC and Industrial Control System Support
+
+The classifier can analyze firmware from PLCs (Siemens S7, Beckhoff, Allen-Bradley) and other embedded systems beyond ARM Cortex-M:
+
+**Architecture flexibility:**
+- **Target:** Any architecture Ghidra supports (ARM Cortex-M, x86, x86-64, MIPS, RISC-V, custom S7 bytecode via processor module)
+- **Limitation:** Only ARM Cortex-M has a built-in heuristic memory map. Other architectures require a custom memory map JSON file
+- **Critical:** A Ghidra processor module must first load and disassemble/decompile the binary. The classifier operates on Ghidra's P-code (architecture-neutral IR), not raw assembly
+
+**Example: Siemens S7-300/400 PLC**
+
+Use case (Stuxnet-relevant): analyzing PLC firmware that controls critical processes (centrifuge drives, SCADA, power grids).
+
+Steps:
+1. Install Ghidra s7-ghidra processor module (community, not official)
+2. Load S7 firmware .bin or .s7p file in Ghidra
+3. Run auto-analysis with s7-ghidra processor active
+4. Provide memory map: `data/siemens_s7_io_memory_map.json` (or your own annotated variant)
+5. Run Classify All Functions — Profibus reads/writes will be flagged as FIELDBUS → Regime 3a
+6. Taint propagates: any function reading from Profibus-fed data becomes Regime 3a
+
+**New SourceType: FIELDBUS**
+
+- Maps: `MemoryRegion.PeripheralClass.FIELDBUS` → `InputSource.SourceType.FIELDBUS` → `AttestationRegime.REGIME_3A`
+- Covers: Profibus DP/PA, EtherNet/IP, Modbus TCP/RTU, CANopen, other industrial buses
+- Rationale: ICS buses are network-like (Regime 3a: adversarial input dominance) but distinct from point-to-point comms (UART, Ethernet)
+- Regime: 3a (white-box analysis only)
+
+**Memory map format (same as ARM):**
+
+See `data/siemens_s7_io_memory_map.json` for a documented example. The JSON format is architecture-agnostic; addresses are canonical within the binary's address space.
 
 ## Gradle Notes
 

@@ -37,6 +37,12 @@ class InputSourceTest {
     }
 
     @Test
+    void testDefaultRegimeFieldbus() {
+        InputSource source = new InputSource(InputSource.SourceType.FIELDBUS, null, "Profibus");
+        assertEquals(AttestationRegime.REGIME_3A, source.defaultRegime());
+    }
+
+    @Test
     void testDefaultRegimeInternalStateWithoutInherited() {
         InputSource source = new InputSource(InputSource.SourceType.INTERNAL_STATE, null, "global_state");
         assertEquals(AttestationRegime.UNCLASSIFIED, source.defaultRegime());

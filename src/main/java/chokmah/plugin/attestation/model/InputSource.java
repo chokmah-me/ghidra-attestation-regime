@@ -16,6 +16,7 @@ public class InputSource {
         INTERNAL_STATE,     // Global written by classified function -> inherit
         SENSOR_ADC,         // Reads from known sensor peripheral -> Regime 2
         NETWORK_COMMS,      // Reads from UART/Ethernet/MAC -> Regime 3a
+        FIELDBUS,           // Reads from industrial field bus (Profibus, EtherNet/IP, Modbus) -> Regime 3a
         UNCLASSIFIED_EXT,   // Unannotated memory region -> conservative Regime 3a
         MMIO_UNKNOWN        // Known MMIO but untyped peripheral -> Regime 3a
     }
@@ -63,7 +64,7 @@ public class InputSource {
             case INTERNAL_STATE -> inheritedRegime != null
                 ? inheritedRegime : AttestationRegime.UNCLASSIFIED;
             case SENSOR_ADC -> AttestationRegime.REGIME_2;
-            case NETWORK_COMMS, UNCLASSIFIED_EXT, MMIO_UNKNOWN -> AttestationRegime.REGIME_3A;
+            case NETWORK_COMMS, FIELDBUS, UNCLASSIFIED_EXT, MMIO_UNKNOWN -> AttestationRegime.REGIME_3A;
         };
     }
 }

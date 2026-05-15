@@ -1,7 +1,7 @@
 # Ghidra Attestation Regime Classifier
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![v0.6.0](https://img.shields.io/badge/version-0.6.0-blue.svg)](#)
+[![v0.8.0](https://img.shields.io/badge/version-0.8.0-blue.svg)](#)
 
 Computability-bounded firmware triage. Classifies every function in an
 embedded firmware image into one of three attestation regimes derived from
@@ -45,18 +45,18 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.6.0.zip`
+Output: `dist/AttestationRegimeClassifier-0.8.0.zip`
 
 ### Install
 
 **Via Ghidra UI:**
 1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.6.0.zip`
+2. Select `dist/AttestationRegimeClassifier-0.8.0.zip`
 3. Restart Ghidra
 
 **Manual (PowerShell):**
 ```powershell
-Copy-Item dist/AttestationRegimeClassifier-0.6.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.8.0.zip `
   $env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/
 ```
 
@@ -80,7 +80,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.6.0.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.8.0.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless
@@ -97,21 +97,22 @@ Output: regime distribution table (Regime 1/2/3a counts, confidence, rationale p
 
 ```powershell
 gradle test
-# 97 tests pass, no Ghidra runtime required
+# 107 tests pass, no Ghidra runtime required
 ```
 
 **Test classes:**
 - `AttestationRegimeTest` (13 tests) — regime enum properties, color coding, dominance
-- `InputSourceTest` (13 tests) — source type classification and regime inheritance
+- `InputSourceTest` (14 tests) — source type classification, regime inheritance, FIELDBUS SourceType
 - `KnownConstantTablesTest` (17 tests) — CRC/AES/SHA table fingerprinting
 - `RegimeAssignerTest` (16 tests) — decision tree logic and priority rules
 - `WeightedRegimePropagatorTest` (12 tests) — call-graph propagation heuristics, weight thresholds
 - `RegimeClassificationSaveableTest` (20 tests) — Saveable schema, field ordering, serialization contract
+- `MemoryRegionTest` (10 tests) — toInputSourceType() mapping for all region/peripheral types including FIELDBUS
 - `IntegrationE2eTest` (6 tests) — end-to-end pipeline with STM32F407 peripherals
 
-## Current Status (v0.7.0)
+## Current Status (v0.8.0)
 
-**Fully implemented and tested (97 tests):**
+**Fully implemented and tested (107 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
 - ✅ Input source categorization (13 tests)
 - ✅ Known constant table identification — CRC32, AES, SHA (17 tests)
@@ -155,11 +156,20 @@ gradle test
 - ✅ Tests validate confidence levels, provenanceCheckScore, and rationale persistence
 - ✅ Total test suite: 97 tests (pure Java, no Ghidra runtime required)
 
+**v0.8.0 additions:**
+- ✅ FIELDBUS SourceType: industrial field bus support (Profibus, EtherNet/IP, Modbus) -> Regime 3a
+- ✅ MemoryRegionTest: 10 tests covering toInputSourceType() for all peripheral classes
+- ✅ siemens_s7_io_memory_map.json: S7-300/400 PLC I/O memory map with Profibus as FIELDBUS
+- ✅ Total test suite: 107 tests (pure Java, no Ghidra runtime required)
+
 ## Sample Memory Maps
 
 - `data/stm32f407_memory_map.json` - STM32F407VG (OpenPLC runtime target)
   Full peripheral map with regime annotations: UART/Ethernet -> Regime 3a,
   ADC -> Regime 2, timers/GPIO/internal -> Regime 1.
+- `data/siemens_s7_io_memory_map.json` - Siemens S7-300/400 PLC I/O address space
+  Profibus master module tagged as FIELDBUS (Regime 3a). Template for ICS PLC analysis.
+  Requires a Ghidra S7 processor module to load S7 object code before classification.
 
 ## Architecture
 
@@ -223,7 +233,7 @@ To cite the AttestationRegimeClassifier plugin:
   title   = {AttestationRegimeClassifier -- Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification},
   author  = {Bilar, Daniyel Yaacov},
   year    = {2026},
-  version = {0.6.0},
+  version = {0.8.0},
   url     = {https://github.com/chokmah/ghidra-attestation-regime}
 }
 ```

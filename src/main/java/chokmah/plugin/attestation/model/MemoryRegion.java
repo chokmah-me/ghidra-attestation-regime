@@ -36,6 +36,7 @@ public class MemoryRegion {
         ETHERNET_MAC,        // Network interface -> Regime 3a
         USB,                 // USB controller -> Regime 3a
         CAN,                 // CAN bus -> Regime 3a (industrial network)
+        FIELDBUS,            // Industrial field bus (Profibus, EtherNet/IP, Modbus) -> Regime 3a
         TIMERS_PWM,          // Internal timing -> Regime 1
         GPIO,                // General purpose I/O -> depends on pin function
         DMA,                 // Direct memory access -> internal
@@ -97,6 +98,7 @@ public class MemoryRegion {
             case MMIO_PERIPHERAL -> switch (peripheralClass) {
                 case ADC, GPIO -> InputSource.SourceType.SENSOR_ADC;
                 case UART, ETHERNET_MAC, USB, CAN -> InputSource.SourceType.NETWORK_COMMS;
+                case FIELDBUS -> InputSource.SourceType.FIELDBUS;
                 case SPI, I2C -> InputSource.SourceType.SENSOR_ADC; // heuristic: often sensors
                 case UNKNOWN_PERIPHERAL -> InputSource.SourceType.MMIO_UNKNOWN;
                 default -> InputSource.SourceType.CONSTANT; // timers, watchdog, crypto
