@@ -55,7 +55,7 @@ public class MemoryRegion {
                         RegionType regionType, PeripheralClass peripheralClass,
                         boolean isVolatile) {
         this.name = name;
-        this.addressRange = new AddressRangeImpl(start, end);
+        this.addressRange = (start != null && end != null) ? new AddressRangeImpl(start, end) : null;
         this.regionType = regionType;
         this.peripheralClass = peripheralClass;
         this.isVolatile = isVolatile;
@@ -82,7 +82,7 @@ public class MemoryRegion {
     }
 
     public boolean contains(Address addr) {
-        return addressRange.contains(addr);
+        return addressRange != null && addressRange.contains(addr);
     }
 
     /**
@@ -108,8 +108,10 @@ public class MemoryRegion {
 
     @Override
     public String toString() {
-        return String.format("%s [%s-%s] type=%s periph=%s volatile=%s",
-                name, addressRange.getMinAddress(), addressRange.getMaxAddress(),
-                regionType, peripheralClass, isVolatile);
+        String range = addressRange != null
+                ? addressRange.getMinAddress() + "-" + addressRange.getMaxAddress()
+                : "no-range";
+        return String.format("%s [%s] type=%s periph=%s volatile=%s",
+                name, range, regionType, peripheralClass, isVolatile);
     }
 }

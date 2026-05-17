@@ -251,9 +251,31 @@ public class SvdMemoryMapParser {
     }
 
     private long computePeripheralSize(Element peripheral, long baseAddr) {
-        // Calculate size from highest register offset + register size
-        // TODO: proper implementation
-        return 0x1000;
+        long maxOffset = 0;
+        NodeList registers = peripheral.getElementsByTagName("register");
+        for (int i = 0; i < registers.getLength(); i++) {
+            Element reg = (Element) registers.item(i);
+            String offsetStr = getTextContent(reg, "addressOffset", "0");
+            String sizeStr = getTextContent(reg, "size", "32");
+            try {
+                long offset = parseHexOrDec(offsetStr);
+                long bits = Long.parseLong(sizeStr.replaceAll("[^0-9]", ""));
+                long regEnd = offset + Math.max(bits / 8, 1);
+                if (regEnd > maxOffset) maxOffset = regEnd;
+            } catch (NumberFormatException ignored) { }
+        }
+        if (maxOffset == 0) return 0x1000;
+        // round up to next power of two, minimum 0x400
+        long size = Math.max(maxOffset, 0x400);
+        long pow2 = 1;
+        while (pow2 < size) pow2 <<= 1;
+        return pow2;
+    }
+
+    private long parseHexOrDec(String s) {
+        s = s.trim();
+        if (s.startsWith("0x") || s.startsWith("0X")) return Long.parseLong(s.substring(2), 16);
+        return Long.parseLong(s);
     }
 
     private String getTextContent(Element parent, String tagName, String defaultValue) {

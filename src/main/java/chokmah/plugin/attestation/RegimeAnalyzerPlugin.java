@@ -49,6 +49,8 @@ import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
 import ghidra.util.task.TaskLauncher;
 
+import ghidra.framework.options.Options;
+
 import java.io.File;
 import java.util.*;
 
@@ -75,6 +77,9 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
     private DockingAction generateReportAction;
     private DockingAction clearAction;
 
+    private static final String OPT_GROUP = "AttestationRegime";
+    private static final String OPT_MAP_PATH = "lastMemoryMapPath";
+
     private List<MemoryRegion> memoryMap = new ArrayList<>();
     private Map<Address, ClassificationResult> results = new HashMap<>();
     private String lastLoadedSvdPath = "";
@@ -95,13 +100,14 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
         tableColumnProvider = new RegimeTableColumnProvider(this);
         MarkerService markerService = tool.getService(MarkerService.class);
         listingColorizer = new RegimeListingColorizer(this, markerService);
-
-        // Try to load memory map from project data
-        loadMemoryMapFromProject();
     }
 
     @Override
     protected void programOpened(Program program) {
+        // Re-load previously used memory map (needs live address factory from program)
+        if (memoryMap.isEmpty()) {
+            loadMemoryMapFromProject(program);
+        }
         loadClassificationsFromPropertyMap(program);
     }
 
@@ -263,6 +269,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
                 SvdMemoryMapParser parser = new SvdMemoryMapParser(currentProgram);
                 memoryMap = parser.parseSvd(file);
                 lastLoadedSvdPath = file.getAbsolutePath();
+                saveMemoryMapPath(lastLoadedSvdPath);
                 Msg.showInfo(this, tool.getToolFrame(), "SVD Loaded",
                         "Loaded " + memoryMap.size() + " memory regions from " + file.getName());
             } catch (Exception e) {
@@ -284,6 +291,7 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
                 SvdMemoryMapParser parser = new SvdMemoryMapParser(currentProgram);
                 memoryMap = parser.parseJson(file);
                 lastLoadedSvdPath = file.getAbsolutePath();
+                saveMemoryMapPath(lastLoadedSvdPath);
                 Msg.showInfo(this, tool.getToolFrame(), "JSON Loaded",
                         "Loaded " + memoryMap.size() + " memory regions from " + file.getName());
             } catch (Exception e) {
@@ -327,8 +335,26 @@ public class RegimeAnalyzerPlugin extends ProgramPlugin {
                 "All regime classifications removed.");
     }
 
-    private void loadMemoryMapFromProject() {
-        // TODO: load from project metadata if previously saved
+    private void loadMemoryMapFromProject(Program program) {
+        Options opts = tool.getOptions(OPT_GROUP);
+        String path = opts.getString(OPT_MAP_PATH, null);
+        if (path == null || path.isBlank()) return;
+        File file = new File(path);
+        if (!file.exists()) return;
+        try {
+            SvdMemoryMapParser parser = new SvdMemoryMapParser(program);
+            boolean isSvd = path.toLowerCase().endsWith(".svd");
+            memoryMap = isSvd ? parser.parseSvd(file) : parser.parseJson(file);
+            lastLoadedSvdPath = path;
+            Msg.info(this, "Auto-loaded memory map from last session: " + file.getName()
+                    + " (" + memoryMap.size() + " regions)");
+        } catch (Exception e) {
+            Msg.warn(this, "Failed to auto-load memory map " + path + ": " + e.getMessage());
+        }
+    }
+
+    private void saveMemoryMapPath(String path) {
+        tool.getOptions(OPT_GROUP).setString(OPT_MAP_PATH, path);
     }
 
     private void loadClassificationsFromPropertyMap(Program program) {
