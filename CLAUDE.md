@@ -48,13 +48,13 @@ This instantiates the Computability Filter (Bilar 2026) as a practical triage to
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-21.0.11"
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
-# Run tests (78 tests, no Ghidra runtime required)
+# Run tests (108 tests, no Ghidra runtime required)
 gradle test
 
 # Build the plugin extension
 gradle buildExtension
 
-# Output: dist/AttestationRegimeClassifier-0.8.1.zip
+# Output: dist/AttestationRegimeClassifier-0.9.0.zip
 ```
 
 ## Install
@@ -63,7 +63,7 @@ gradle buildExtension
 ```powershell
 .\scripts\Install-AttestationRegimePlugin.ps1 `
   -GhidraInstallDir "C:\Tools\ghidra_12.0.4_PUBLIC" `
-  -PluginZip "dist\AttestationRegimeClassifier-0.8.1.zip"
+  -PluginZip "dist\AttestationRegimeClassifier-0.9.0.zip"
 ```
 
 Then in Ghidra: File > Install Extensions > check "Attestation Regime Classifier" > OK > restart.
@@ -81,8 +81,8 @@ The plugin runs a **5-step classification pipeline** on every function:
 
 Results are cached for Listing view with MarkerService integration (green margin markers = Regime 1, yellow = Regime 2, red = Regime 3a, orange = provenance check, gray = unclassified).
 
-**Current Build Status (v0.8.1):**
-- ✅ Pure-Java model & decision tree: 107 tests passing (added MemoryRegionTest: 10 tests, FIELDBUS SourceType)
+**Current Build Status (v0.9.0):**
+- ✅ Pure-Java model & decision tree: 108 tests passing (MemoryRegionTest 10 tests fixed, FIELDBUS SourceType)
 - ✅ JSON memory map parser: reads STM32F407 fixture and S7 I/O memory map
 - ✅ Call-graph propagation with improved regime-based classification
 - ✅ ControlFlowAnalyzer: CBRANCH predicate tracing, hasFunctionPointerUsage detection
@@ -98,6 +98,9 @@ Results are cached for Listing view with MarkerService integration (green margin
 - ✅ Tools > Attestation Regime menu in CodeBrowser (requires File > Configure to enable)
 - ✅ Install script: scripts/Install-AttestationRegimePlugin.ps1
 - ✅ Confirmed end-to-end on zephyr-hello_world_stm32f4.elf: 170 functions (17 R1, 143 R3a, 10 Provenance)
+- ✅ Memory map persistence: last-used path saved to tool Options, auto-reloads on programOpened
+- ✅ SVD peripheral size computed from register offsets (was hardcoded 4KB)
+- ✅ MemoryRegion null-safe constructor: 108 tests passing
 
 ## Code Structure
 
@@ -181,7 +184,7 @@ Example: `data/stm32f407_memory_map.json` (STM32F407VG OpenPLC target) — uses 
 ## Testing
 
 ```powershell
-# Run all 97 tests (pure Java, no Ghidra runtime required)
+# Run all 108 tests (pure Java, no Ghidra runtime required)
 gradle test
 
 # Run specific test classes
@@ -197,7 +200,7 @@ gradle test --tests chokmah.plugin.attestation.IntegrationE2eTest
 start build/reports/tests/test/index.html
 ```
 
-**Test Coverage (9 classes, 107 tests):**
+**Test Coverage (9 classes, 108 tests):**
 - AttestationRegimeTest (13) — regime enum properties, color coding, dominance
 - InputSourceTest (14) — source type mapping, regime inheritance, FIELDBUS SourceType
 - KnownConstantTablesTest (17) — CRC/AES/SHA fingerprinting

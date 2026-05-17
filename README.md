@@ -1,7 +1,7 @@
 # Ghidra Attestation Regime Classifier
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![v0.8.1](https://img.shields.io/badge/version-0.8.1-blue.svg)](#)
+[![v0.9.0](https://img.shields.io/badge/version-0.9.0-blue.svg)](#)
 
 Computability-bounded firmware triage. Classifies every function in an
 embedded firmware image into one of three attestation regimes derived from
@@ -45,7 +45,7 @@ $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 gradle buildExtension
 ```
 
-Output: `dist/AttestationRegimeClassifier-0.8.1.zip`
+Output: `dist/AttestationRegimeClassifier-0.9.0.zip`
 
 ### Install
 
@@ -53,7 +53,7 @@ Output: `dist/AttestationRegimeClassifier-0.8.1.zip`
 ```powershell
 .\scripts\Install-AttestationRegimePlugin.ps1 `
   -GhidraInstallDir "C:\Tools\ghidra_12.0.4_PUBLIC" `
-  -PluginZip "dist\AttestationRegimeClassifier-0.8.1.zip"
+  -PluginZip "dist\AttestationRegimeClassifier-0.9.0.zip"
 ```
 
 The script stops Ghidra, removes any prior installation, extracts the ZIP, and verifies `extension.properties` is present.
@@ -64,7 +64,7 @@ The script stops Ghidra, removes any prior installation, extracts the ZIP, and v
 
 **Via Ghidra UI only:**
 1. File > Install Extensions > Add
-2. Select `dist/AttestationRegimeClassifier-0.8.1.zip`
+2. Select `dist/AttestationRegimeClassifier-0.9.0.zip`
 3. Check "Attestation Regime Classifier" in the list > OK > restart Ghidra
 4. Open a binary in CodeBrowser > File > Configure > enable RegimeAnalyzerPlugin
 
@@ -88,7 +88,7 @@ Install plugin first, then run via `analyzeHeadless`:
 $env:GHIDRA_INSTALL_DIR = "C:\Tools\ghidra_12.0.4_PUBLIC"
 
 # Install plugin
-Copy-Item dist/AttestationRegimeClassifier-0.8.1.zip `
+Copy-Item dist/AttestationRegimeClassifier-0.9.0.zip `
   "$env:GHIDRA_INSTALL_DIR/Ghidra/Extensions/"
 
 # Run classification headless
@@ -105,7 +105,7 @@ Output: regime distribution table (Regime 1/2/3a counts, confidence, rationale p
 
 ```powershell
 gradle test
-# 107 tests pass, no Ghidra runtime required
+# 108 tests pass, no Ghidra runtime required
 ```
 
 **Test classes:**
@@ -118,9 +118,9 @@ gradle test
 - `MemoryRegionTest` (10 tests) — toInputSourceType() mapping for all region/peripheral types including FIELDBUS
 - `IntegrationE2eTest` (6 tests) — end-to-end pipeline with STM32F407 peripherals
 
-## Current Status (v0.8.1)
+## Current Status (v0.9.0)
 
-**Fully implemented and tested (107 tests):**
+**Fully implemented and tested (108 tests):**
 - ✅ Regime model and decision tree logic (16 tests)
 - ✅ Input source categorization (13 tests)
 - ✅ Known constant table identification — CRC32, AES, SHA (17 tests)
@@ -178,6 +178,12 @@ gradle test
 - ✅ Menu path corrected — all actions moved to `Tools > Attestation Regime` (was standalone top-level menu)
 - ✅ Install script — `scripts/Install-AttestationRegimePlugin.ps1` automates stop/remove/extract/verify
 - ✅ First confirmed working end-to-end Ghidra 12.0.4 UI install: 170 functions classified on `zephyr-hello_world_stm32f4.elf`
+
+**v0.9.0 additions:**
+- ✅ Memory map persistence — last-used JSON/SVD path saved to tool Options; auto-reloads on next `programOpened`, no manual re-selection after restart
+- ✅ SVD peripheral size — `computePeripheralSize()` now reads register offsets from SVD XML and rounds up to next power of two (min 1KB); was always returning 4KB
+- ✅ MemoryRegion null-safety — constructor accepts null start/end addresses; fixes 10 `MemoryRegionTest` tests broken since v0.8.0 (AddressRangeImpl rejects null)
+- ✅ 108 tests passing
 
 ## Sample Memory Maps
 
@@ -250,7 +256,7 @@ To cite the AttestationRegimeClassifier plugin:
   title   = {AttestationRegimeClassifier -- Ghidra Plugin for ICS/Embedded Firmware Attestation Regime Classification},
   author  = {Bilar, Daniyel Yaacov},
   year    = {2026},
-  version = {0.8.1},
+  version = {0.9.0},
   url     = {https://github.com/chokmah/ghidra-attestation-regime}
 }
 ```

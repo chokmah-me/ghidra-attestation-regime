@@ -1,5 +1,21 @@
 # Release Notes
 
+## v0.9.0 — 2026-05-17
+
+**Status: Stable** — Memory map persistence, SVD accuracy fix, test suite restored.
+
+### What's New
+
+- **Memory map persistence** — After loading a JSON or SVD file the path is stored in Ghidra's tool Options. On next `programOpened` it auto-reloads silently; no manual re-selection after restart.
+- **SVD peripheral size** — `computePeripheralSize()` now scans register offsets from the SVD XML and rounds up to the next power of two (min 1KB). Was always returning 4KB regardless of peripheral type (DMA/UART = 0x400, Ethernet = 0x8000).
+- **MemoryRegion null-safety** — Constructor now accepts null start/end addresses. Fixes 10 `MemoryRegionTest` tests that had been silently failing since v0.8.0 (AddressRangeImpl rejects null; tests use null for unit-testing `toInputSourceType()` without a live Ghidra address space).
+
+### Testing
+
+108 tests passing. The 10 previously broken `MemoryRegionTest` tests now pass. No regression in existing tests.
+
+---
+
 ## v0.8.1 — 2026-05-15
 
 **Status: Stable** — Build system fix; first working Ghidra 12.0.4 UI install.
